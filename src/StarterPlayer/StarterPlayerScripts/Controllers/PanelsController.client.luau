@@ -210,7 +210,10 @@ local FLAT_INK = Color3.fromRGB(43, 23, 64)
 local FLAT_EDGE = Color3.fromRGB(0, 0, 0)
 
 local FREE_W, FREE_H = 600, 600
-local freeShell, freeBody = makePanel("FreeRewards", "FREE REWARDS", FREE_W, FREE_H, ICON.gift, true)
+local LocalizationService = game:GetService("LocalizationService")
+local freeLocale = string.lower(LocalizationService.RobloxLocaleId or LocalizationService.SystemLocaleId or "en-us")
+local freeTitle = string.sub(freeLocale, 1, 2) == "fr" and "Récompense gratuite" or "FREE REWARDS"
+local freeShell, freeBody = makePanel("FreeRewards", freeTitle, FREE_W, FREE_H, ICON.gift, true)
 local BODY_W = FREE_W
 
 do
