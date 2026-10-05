@@ -997,7 +997,8 @@ pushPets = function(plr)
     })
 end
 
-local function petToolsOf(plr)    local out = {}
+local function petToolsOf(plr)
+    local out = {}
     for _, holder in ipairs({ plr:FindFirstChildOfClass("Backpack"), plr.Character }) do
         if holder then
             for _, t in ipairs(holder:GetChildren()) do
