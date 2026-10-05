@@ -997,7 +997,8 @@ local function batTile(index, zone)
 	b:SetAttribute("HoverMaxGrow", 6)
 	local label = b:FindFirstChild("Label")
 	if label then
-		label.Size = UDim2.new(1, -52, 1, 0)		label.Position = UDim2.fromOffset(48, 0)
+		label.Size = UDim2.new(1, -52, 1, 0)
+		label.Position = UDim2.fromOffset(48, 0)
 		label.TextXAlignment = Enum.TextXAlignment.Left
 		label.TextScaled = false
 		label.TextSize = 14
