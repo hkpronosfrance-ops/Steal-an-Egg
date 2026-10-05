@@ -997,7 +997,8 @@ local function stepBossCore(n, b, dt)
                 * CFrame.Angles(0, homeYaw(b), 0))
         end
         if k >= 1 then b.state = "chase" end
-        return    end
+        return
+    end
 
     if b.state == "attack" then
         b.atkT = b.atkT + dt
@@ -1996,7 +1997,8 @@ local function buildTrapTool()
     end
 
     tool.Grip = CFrame.Angles(math.rad(-12), 0, 0)
-    return toolend
+    return tool
+end
 
 local function giveGear(plr)
     local bag = plr:FindFirstChildOfClass("Backpack")
