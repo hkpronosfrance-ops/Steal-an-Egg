@@ -32,8 +32,8 @@ if __isFrench then
         ["recommended"] = "recommandé",
         ["SAFE ZONE"] = "ZONE SÛRE",
         ["FASTEST"] = "PLUS RAPIDE",
-        ["PLAYTIME"] = "PLUS ACTIFS",
-        ["TOP SPENDER"] = "TOP DÉPENSE ROBUX",
+        ["PLAYTIME"] = "MEILLEUR TEMPS JOUÉ",
+        ["TOP SPENDER"] = "TOP DES ROBUX DÉPENSÉS",
         ["GROUP REWARDS"] = "GRATUIT !",
         ["SELL"] = "VENDRE",
         ["SELL PETS"] = "VENDRE LES ANIMAUX",
@@ -81,9 +81,9 @@ if __isFrench then
         ["ALL EGGS RESET!"] = "TOUS LES ŒUFS ONT ÉTÉ RÉINITIALISÉS !",
         ["The map is closed at night!"] = "La carte est fermée la nuit !",
         ["LEGENDARY EGG"] = "ŒUF LÉGENDAIRE",
-        ["FREE REWARDS"] = "RÉCOMPENSES GRATUITES",
-        ["Like the Game!"] = "Aime le jeu !",
-        ["Join Our Group!"] = "Rejoins notre groupe !",
+        ["FREE REWARDS"] = "RÉCOMPENSE GRATUIT",
+        ["Like the Game!"] = "AIMEZ LE JEU !",
+        ["Join Our Group!"] = "REJOIGNEZ LA COMMUNAUTÉ !",
         ["Thank You!"] = "Merci !",
         ["Join First"] = "Rejoins d'abord",
         ["Try Later"] = "Réessaie plus tard",
@@ -338,7 +338,7 @@ do
             ["RICHEST"]="PLUS RICHE", ["FASTEST"]="PLUS RAPIDE", ["FUSE MACHINE"]="MACHINE DE FUSION",
 
             -- Window headings / controls
-            ["FREE REWARDS"]="RÉCOMPENSES GRATUITES", ["PET INDEX"]="INDEX DES ANIMAUX",
+            ["FREE REWARDS"]="RÉCOMPENSE GRATUIT", ["PET INDEX"]="INDEX DES ANIMAUX",
             ["TRAIL SHOP"]="BOUTIQUE DE SENTIERS", ["Fuse Machine"]="Machine de fusion",
             ["GROWING EGGS"]="ŒUFS EN CROISSANCE", ["ACTIVE PETS"]="ANIMAUX ACTIFS",
             ["REBIRTH"]="RENAISSANCE", ["SETTINGS"]="PARAMÈTRES", ["SHOP"]="BOUTIQUE",
@@ -359,8 +359,8 @@ do
             ["+1 EQUIP"]="+1 ÉQUIPÉ", ["EQUIP BEST"]="ÉQUIPER LES MEILLEURS",
 
             -- Shop / rewards
-            ["PASSES"]="PASSES", ["Gift Player"]="Offrir à un joueur", ["Like the Game!"]="Aime le jeu !",
-            ["Join Our Group!"]="Rejoins notre groupe !", ["Join First"]="Rejoins d'abord",
+            ["PASSES"]="PASSES", ["Gift Player"]="Offrir à un joueur", ["Like the Game!"]="AIMEZ LE JEU !",
+            ["Join Our Group!"]="REJOIGNEZ LA COMMUNAUTÉ !", ["Join First"]="Rejoins d'abord",
             ["Try Later"]="Réessaie plus tard", ["Thank You!"]="Merci !",
             ["Reward claimed!"]="Récompense récupérée !", ["Reward unavailable"]="Récompense indisponible",
             ["No other players in this server"]="Aucun autre joueur sur ce serveur",
