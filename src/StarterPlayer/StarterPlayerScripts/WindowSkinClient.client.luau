@@ -559,6 +559,21 @@ do
             if busy[o] then return end
             local ok,v=pcall(function() return o[p] end); if not ok then return end
             local nv=tr2(v)
+
+            -- World sign fix: the French Trails Shop title is much wider than
+            -- the English source text. Billboard/Surface UI absolute sizing can
+            -- vary with camera projection, which made it wrap between 1 and 2
+            -- lines while moving the camera. Keep this title on one line and
+            -- let TextScaled reduce the glyph size instead.
+            if p == "Text" and (o:IsA("TextLabel") or o:IsA("TextButton")) then
+                if v == "TRAILS SHOP" or v == "TRAIL SHOP" or nv == "BOUTIQUE DE TRAÎNÉES" then
+                    pcall(function()
+                        o.TextWrapped = false
+                        o.TextScaled = true
+                    end)
+                end
+            end
+
             if nv~=v then busy[o]=true; pcall(function() o[p]=nv end); busy[o]=nil end
         end
         local function bind(o)
