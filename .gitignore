@@ -1,0 +1,23 @@
+# OS / editors
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# Roblox / Rojo generated
+*.rbxl.lock
+*.rbxlx.lock
+sourcemap.json
+
+# Temporary audit artifacts
+*.tmp
+*.bak
+__pycache__/
+*.pyc
+
+# Never commit secrets
+.env
+.env.*
+secrets/
+*.pem
+*.key
