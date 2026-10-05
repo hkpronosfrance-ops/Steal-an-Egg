@@ -997,4 +997,651 @@ end)
 UIS.InputEnded:Connect(function(input)
     if drag and (input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch) then
         endDrag(Vector2.new(input.Position.X, input.Position.Y))
+    endend)
+
+local cards = {}
+
+local function makeCard(order)
+    local card = Instance.new("TextButton")
+    card.Name = "Card"
+    card.AutoButtonColor = false
+    card.Text = ""
+    card.BackgroundColor3 = SLOT_BG
+    card.BackgroundTransparency = 0.15
+    card.BorderSizePixel = 0
+    card.LayoutOrder = order
+    card.ZIndex = 9
+    card.Parent = grid
+    corner(card, 8)
+    local st = edge(card, EDGE, 2)
+    st.BorderStrokePosition = Enum.BorderStrokePosition.Inner
+
+    local view = Instance.new("ViewportFrame")
+    view.Name = "Icon"
+    view.BackgroundTransparency = 1
+    view.Position = UDim2.fromScale(0.08, 0.04)
+    view.Size = UDim2.fromScale(0.84, 0.62)
+    view.ZIndex = 10
+    view.Parent = card
+
+    local star, starC = shout(card, UDim2.fromScale(0.22, 0.22), UDim2.fromScale(0.76, 0.03),
+        "\226\152\133", 18, Color3.fromRGB(252, 214, 84), nil, 12)
+    star.Visible = false
+
+    local name, nameC = shout(card, UDim2.fromScale(0.94, 0.16), UDim2.fromScale(0.03, 0.66), "", 13, INK, nil, 12)
+    local sub, subC   = shout(card, UDim2.fromScale(0.94, 0.14), UDim2.fromScale(0.03, 0.82), "", 11, INK, nil, 12)
+    local cnt, cntC   = shout(card, UDim2.fromScale(0.4, 0.2), UDim2.fromScale(0.05, 0.03), "", 14, INK,
+        Enum.TextXAlignment.Left, 12)
+
+    local rec = { card = card, view = view, name = name, sub = sub, count = cnt, star = star,
+                  stroke = st, tool = nil, shown = nil,
+                  nameC = nameC, subC = subC, cntC = cntC, starC = starC,
+                  baseBg = card.BackgroundColor3 }
+
+    card.MouseButton1Click:Connect(function()
+        if suppressClick[card] then suppressClick[card] = nil return end
+        if rec.tool then setStored(rec.tool, not isStored(rec.tool)) end
+    end)
+    card.InputBegan:Connect(function(input)
+        if rec.tool then beginDrag(rec.tool, "card", nil, card, input) end
+    end)
+    cardByInstance[card] = rec
+    return rec
+end
+
+local layout = { slot = 60, card = 98 }
+
+local function relayout()
+    local cam = workspace.CurrentCamera
+    if not cam then return end
+    local vp = cam.ViewportSize
+    local small = math.min(vp.X, vp.Y) < 500
+    local pw = math.floor(vp.X * (small and 0.55 or PANEL_W_SCALE))
+    local ph = math.floor(vp.Y * (small and 0.52 or PANEL_H_SCALE))
+
+    local slot = math.floor(((math.floor(vp.X * PANEL_W_SCALE) - (SLOTS - 1) * SLOT_GAP) / SLOTS) * 1.56)
+    if small then slot = math.max(slot, math.floor(math.min(vp.X, vp.Y) * 0.15)) end
+    local touchGui = plr.PlayerGui:FindFirstChild("TouchGui")
+    local jump = touchGui and touchGui.Enabled and touchGui:FindFirstChild("JumpButton", true)
+    if jump and jump.Visible and jump.AbsoluteSize.X > 0 then
+        local room = (jump.AbsolutePosition.X - 8) * 2 - vp.X
+        local fit = math.floor((room - (SLOTS - 1) * SLOT_GAP) / SLOTS)
+        if fit >= 36 then slot = math.min(slot, fit) end
     end
+    layout.slot = slot
+    for _, e in ipairs(hotSlots) do
+        e.slot.Size = UDim2.fromOffset(slot, slot)
+        e.numC.MaxTextSize = math.max(8, math.floor(slot * 0.21))
+        e.cntC.MaxTextSize = math.max(12, math.floor(slot * 0.38))
+    end
+
+    panel.Size = UDim2.fromOffset(pw, ph)
+    panel.Position = UDim2.new(0.5, 0, 1, -(slot + 16))
+    titleC.MaxTextSize = math.max(12, math.floor(ph * 0.075))
+    search.Size = UDim2.fromOffset(math.floor(pw * 0.19), math.floor(ph * 0.07))
+
+    local top = math.floor(ph * 0.135)
+    local gx = 10
+    local gw = pw - gx * 2 - 8
+    grid.Position = UDim2.fromOffset(gx, top)
+
+    local card = math.max(1, math.floor((gw - (COLS - 1) * CARD_GAP) / COLS))
+    layout.card = card
+
+    local avail = math.max(1, ph - top - 8)
+    local rowTarget = math.floor(card * 0.98) + CARD_GAP
+    local rows = math.max(1, math.floor((avail + CARD_GAP) / rowTarget + 0.5))
+    local cellH = math.floor((avail + CARD_GAP) / rows) - CARD_GAP
+
+    cellH = math.clamp(cellH, math.floor(card * 0.7), math.floor(card * 1.15))
+    gridLayout.CellSize = UDim2.fromOffset(card, cellH)
+    grid.Size = UDim2.fromOffset(gw + 8, rows * (cellH + CARD_GAP) - CARD_GAP)
+    for _, c in ipairs(cards) do
+        c.nameC.MaxTextSize = math.max(7, math.floor(card * 0.135))
+        c.subC.MaxTextSize  = math.max(6, math.floor(card * 0.115))
+        c.cntC.MaxTextSize  = math.max(7, math.floor(card * 0.15))
+        c.starC.MaxTextSize = math.max(8, math.floor(card * 0.19))
+    end
+
+    local tab = math.floor(ph * 0.19)
+    rail.Size = UDim2.fromOffset(tab, tab * 2 + 6)
+    for _, t in pairs(tabButtons) do
+        t.button.Size = UDim2.fromOffset(tab, tab)
+        t.labelC.MaxTextSize = math.max(8, math.floor(tab * 0.22))
+    end
+end
+
+renderPanel = function()
+    for name, t in pairs(tabButtons) do
+        t.stroke.Color = PICKED
+        t.stroke.Transparency = (name == activeTab) and 0 or 1
+        t.button.BackgroundTransparency = (name == activeTab) and 0.02 or 0.12
+    end
+
+    local all = toolsOfPlayer()
+
+    local needle = search.Text:lower():gsub("[^%w%s]", ""):gsub("^%s+", ""):gsub("%s+$", "")
+    local rows = {}
+
+    for _, row in ipairs(all) do
+        local mine = activeTab == nil or ((activeTab == "Pets") and row.pet) or (activeTab == "Eggs" and not row.pet)
+        if not row.gear and mine
+           and (needle == "" or row.tool.Name:lower():find(needle, 1, true)) then
+            table.insert(rows, row)
+        end
+    end
+
+    local grew = false
+    for index = 1, math.max(#rows, #cards) do
+        local row = rows[index]
+        local c = cards[index]
+        if row and not c then
+            c = makeCard(index)
+            cards[index] = c
+            grew = true
+        end
+        if c then
+            if row then
+                c.card.Visible = true
+                c.tool = row.tool
+                if c.shown ~= row.tool then
+                    c.shown = row.tool
+                    fillIcon(c.view, row.tool)
+                end
+                local ink = TIER_INK[row.tier] or INK
+
+                c.name.Text = row.tool:GetAttribute("Species")
+                    or Cfg.NAMES[row.zone] or ("Zone " .. tostring(row.zone))
+                c.name.TextColor3 = ink
+                local sz = Cfg.SIZES[row.size]
+                c.sub.Text = sz and ("(" .. sz.name .. ")") or ""
+                c.sub.TextColor3 = ink
+                c.star.Visible = row.equipped == true
+
+                c.card.BackgroundColor3 = row.stored and c.baseBg
+                    or c.baseBg:Lerp(Color3.fromRGB(64, 170, 80), 0.45)
+                c.stroke.Color = PICKED
+                c.stroke.Transparency = row.equipped and 0 or 1
+            else
+                c.card.Visible = false
+                c.tool = nil
+                c.shown = nil
+            end
+        end
+    end
+    if grew then relayout() end
+
+    if #rows == 0 then
+        if needle ~= "" then
+            empty.Text = "No results"
+        else
+            empty.Text = (activeTab == "Pets") and "No pets yet"
+                or (activeTab == "Eggs") and "No eggs yet - steal one and bring it home"
+                or "No items yet - steal an egg and bring it home"
+        end
+    else
+        empty.Text = ""
+    end
+end
+
+local COUNT_INK  = Color3.fromRGB(236, 242, 228)
+local COUNT_NONE = Color3.fromRGB(238, 58, 48)
+
+local function paintCount(entry)
+    local tool = entry.tool
+    local n = tool and tool:GetAttribute("Count")
+    if type(n) ~= "number" then
+        entry.count.Text = ""
+        return
+    end
+    entry.count.Text = "x" .. n
+    entry.count.TextColor3 = (n <= 0) and COUNT_NONE or COUNT_INK
+end
+
+local function renderBar()
+
+    local list = {}
+    for _, row in ipairs(toolsOfPlayer()) do
+        if row.gear or not row.stored or row.equipped then table.insert(list, row) end
+    end
+    local bySlot, loose = {}, {}
+    for _, row in ipairs(list) do
+        local want = pinned[row.tool]
+        if want and not bySlot[want] then bySlot[want] = row else table.insert(loose, row) end
+    end
+    local nextLoose, lastUsed = 1, 0
+    for i = 1, SLOTS do
+        if not bySlot[i] and loose[nextLoose] then
+            bySlot[i] = loose[nextLoose]
+            nextLoose += 1
+        end
+        if bySlot[i] then lastUsed = i end
+    end
+    for i = 1, SLOTS do
+        local row = bySlot[i]
+        local e = hotSlots[i]
+        if row then
+            e.tool = row.tool
+            e.slot.Visible = true
+            paintCount(e)
+            if e.shown ~= row.tool then
+                e.shown = row.tool
+                fillIcon(e.view, row.tool)
+            end
+            e.stroke.Color = PICKED
+            e.stroke.Transparency = row.equipped and 0 or 1
+            e.slot.BackgroundTransparency = row.equipped and 0.05 or 0.25
+        else
+
+            e.tool = nil
+            e.shown = nil
+            e.count.Text = ""
+            iconToken[e.view] = (iconToken[e.view] or 0) + 1
+            e.view:ClearAllChildren()
+            e.stroke.Transparency = 1
+            e.slot.BackgroundTransparency = 0.25
+            e.slot.Visible = i <= lastUsed or (drag ~= nil and drag.active)
+        end
+    end
+end
+
+local dirty = false
+function markDirty()
+    if dirty then return end
+    dirty = true
+    task.defer(function()
+        dirty = false
+        reconcileEggs()
+        renderBar()
+        if panel.Visible then renderPanel() end
+    end)
+end
+
+Remote.OnClientEvent:Connect(function(action, data)
+    if action ~= "BagState" or type(data) ~= "table" then return end
+    table.clear(storedKeys)
+    for k, v in pairs(type(data.pets) == "table" and data.pets or {}) do
+        if v == true then storedKeys[k] = true end
+    end
+    table.clear(wantedEggs)
+    for sig, n in pairs(type(data.eggs) == "table" and data.eggs or {}) do
+        wantedEggs[sig] = tonumber(n) or 0
+    end
+
+    bagReadyAt = os.clock() + 8
+    markDirty()
+end)
+for _, delaySec in ipairs({ 1, 5, 12 }) do
+    task.delay(delaySec, function() Remote:FireServer("BagState") end)
+end
+
+task.spawn(function()
+    while true do
+        task.wait(0.2)
+        for _, e in ipairs(hotSlots) do
+            if e.tool then paintCount(e) end
+        end
+    end
+end)
+
+panel:GetPropertyChangedSignal("Visible"):Connect(function()
+    if panel.Visible and search.Text ~= "" then search.Text = "" end
+end)
+
+search:GetPropertyChangedSignal("Text"):Connect(function()
+    if panel.Visible then renderPanel() end
+end)
+
+local function watch(parent)
+    if not parent then return end
+    parent.ChildAdded:Connect(markDirty)
+    parent.ChildRemoved:Connect(markDirty)
+end
+watch(plr:FindFirstChildOfClass("Backpack"))
+plr.ChildAdded:Connect(function(c)
+    if c:IsA("Backpack") then watch(c) markDirty() end
+end)
+if plr.Character then watch(plr.Character) end
+plr.CharacterAdded:Connect(function(ch)
+    watch(ch)
+    task.delay(0.5, markDirty)
+end)
+
+do
+    local function hook(cam)
+        if cam then cam:GetPropertyChangedSignal("ViewportSize"):Connect(relayout) end
+    end
+    hook(workspace.CurrentCamera)
+    workspace:GetPropertyChangedSignal("CurrentCamera"):Connect(function()
+        hook(workspace.CurrentCamera)
+        relayout()
+    end)
+end
+relayout()
+task.spawn(function()
+    local touchGui = plr:WaitForChild("PlayerGui"):WaitForChild("TouchGui", 30)
+    local frame = touchGui and touchGui:WaitForChild("TouchControlFrame", 10)
+    local jump = frame and frame:WaitForChild("JumpButton", 10)
+    if jump then
+        jump:GetPropertyChangedSignal("AbsolutePosition"):Connect(relayout)
+        jump:GetPropertyChangedSignal("Visible"):Connect(relayout)
+        relayout()
+    end
+end)
+
+local SLOT_KEYS = {}
+do
+    local top = { Enum.KeyCode.One, Enum.KeyCode.Two, Enum.KeyCode.Three,
+                  Enum.KeyCode.Four, Enum.KeyCode.Five, Enum.KeyCode.Six,
+                  Enum.KeyCode.Seven, Enum.KeyCode.Eight, Enum.KeyCode.Nine,
+                  Enum.KeyCode.Zero }
+    local pad = { Enum.KeyCode.KeypadOne, Enum.KeyCode.KeypadTwo, Enum.KeyCode.KeypadThree,
+                  Enum.KeyCode.KeypadFour, Enum.KeyCode.KeypadFive, Enum.KeyCode.KeypadSix,
+                  Enum.KeyCode.KeypadSeven, Enum.KeyCode.KeypadEight, Enum.KeyCode.KeypadNine,
+                  Enum.KeyCode.KeypadZero }
+    for i = 1, SLOTS do
+        local kt, kp = top[i], pad[i]
+        SLOT_KEYS[kt] = i
+        SLOT_KEYS[kp] = i
+    end
+end
+
+UIS.InputBegan:Connect(function(input, processed)
+    if processed then return end
+    if input.UserInputType ~= Enum.UserInputType.Keyboard then return end
+    if input.KeyCode == Enum.KeyCode.B or input.KeyCode == Enum.KeyCode.Backquote then
+        panel.Visible = not panel.Visible
+        if panel.Visible then
+            activeTab = nil
+            renderPanel()
+        end
+        return
+    end
+    local n = SLOT_KEYS[input.KeyCode]
+    if n and hotSlots[n] and hotSlots[n].tool then
+        useTool(hotSlots[n].tool)
+    end
+end)
+
+do
+    local bus = RS:WaitForChild("Remotes"):WaitForChild("OpenPanel", 20)
+    if bus then
+        bus.Event:Connect(function(id)
+
+            local tab = tostring(id):match("^EggBag(%a+)$")
+            if tab == "Eggs" or tab == "Pets" then
+                if panel.Visible then
+                    panel.Visible = false
+                else
+                    activeTab = nil
+                    panel.Visible = true
+                    renderPanel()
+                end
+                return
+            end
+            if id ~= "EggBag" then return end
+            panel.Visible = not panel.Visible
+            if panel.Visible then
+                activeTab = nil
+                renderPanel()
+            end
+        end)
+    end
+end
+
+task.delay(1, markDirty)
+
+local warnLabel = Instance.new("TextLabel")
+warnLabel.Name = "GearWarn"
+warnLabel.BackgroundTransparency = 1
+warnLabel.AnchorPoint = Vector2.new(0.5, 0.5)
+warnLabel.Position = UDim2.fromScale(0.5, 0.30)
+warnLabel.Size = UDim2.fromOffset(700, 46)
+warnLabel.Font = Enum.Font.FredokaOne
+warnLabel.TextScaled = true
+warnLabel.Text = ""
+warnLabel.TextColor3 = Color3.fromRGB(226, 38, 38)
+warnLabel.TextStrokeColor3 = Color3.fromRGB(14, 12, 16)
+warnLabel.TextStrokeTransparency = 0
+warnLabel.Visible = false
+warnLabel.ZIndex = 40
+warnLabel.Parent = gui
+do
+    local c = Instance.new("UITextSizeConstraint")
+    c.MinTextSize = 14
+    c.MaxTextSize = 34
+    c.Parent = warnLabel
+
+    local st = Instance.new("UIStroke")
+    st.Thickness = 3
+    st.Color = Color3.fromRGB(14, 12, 16)
+    st.ApplyStrokeMode = Enum.ApplyStrokeMode.Contextual
+    st.Parent = warnLabel
+end
+
+local warnToken = 0
+local function warnMsg(text)
+    warnLabel.Text = text
+    warnLabel.Visible = true
+    warnToken += 1
+    local mine = warnToken
+    task.delay(2.2, function()
+        if warnToken == mine then warnLabel.Visible = false end
+    end)
+end
+
+local stunPlates = {}
+
+local PLATE_W, PLATE_H = 120, 70
+local PLATE_REF = 20
+local PLATE_MIN, PLATE_MAX = 0.28, 1.35
+
+local function scalePlate(plate, head)
+    local cam = workspace.CurrentCamera
+    if not (cam and head) then return end
+    local dist = (cam.CFrame.Position - head.Position).Magnitude
+    local k = math.clamp(PLATE_REF / math.max(dist, 1), PLATE_MIN, PLATE_MAX)
+    plate.gui.Size = UDim2.fromOffset(math.floor(PLATE_W * k), math.floor(PLATE_H * k))
+end
+
+local function stunPlateFor(character)
+    local head = character:FindFirstChild("Head")
+    if not head then return nil end
+    local plate = stunPlates[character]
+    if plate and plate.gui.Parent then return plate end
+
+    local bb = Instance.new("BillboardGui")
+    bb.Name = "TrappedTag"
+    bb.Adornee = head
+    bb.AlwaysOnTop = true
+    bb.Size = UDim2.fromOffset(PLATE_W, PLATE_H)
+    bb.StudsOffsetWorldSpace = Vector3.new(0, 3.0, 0)
+    bb.MaxDistance = 140
+    bb.Parent = character
+
+    local word = Instance.new("TextLabel")
+    word.Name = "Word"
+    word.BackgroundTransparency = 1
+    word.Size = UDim2.fromScale(1, 0.55)
+    word.Position = UDim2.fromScale(0, 0)
+    word.Font = Enum.Font.FredokaOne
+    word.TextScaled = true
+    word.Text = "TRAPPED"
+    word.TextColor3 = Color3.fromRGB(232, 46, 40)
+    word.TextStrokeColor3 = Color3.fromRGB(16, 14, 18)
+    word.TextStrokeTransparency = 0
+    word.Parent = bb
+    local ws = Instance.new("UIStroke")
+    ws.Thickness = 3
+    ws.Color = Color3.fromRGB(16, 14, 18)
+    ws.Parent = word
+
+    local clock = Instance.new("TextLabel")
+    clock.Name = "Clock"
+    clock.BackgroundTransparency = 1
+    clock.Size = UDim2.fromScale(1, 0.42)
+    clock.Position = UDim2.fromScale(0, 0.56)
+    clock.Font = Enum.Font.FredokaOne
+    clock.TextScaled = true
+    clock.Text = ""
+    clock.TextColor3 = Color3.fromRGB(255, 255, 255)
+    clock.TextStrokeColor3 = Color3.fromRGB(16, 14, 18)
+    clock.TextStrokeTransparency = 0
+    clock.Parent = bb
+    local cs = Instance.new("UIStroke")
+    cs.Thickness = 3
+    cs.Color = Color3.fromRGB(16, 14, 18)
+    cs.Parent = clock
+
+    plate = { gui = bb, word = word, clock = clock }
+    stunPlates[character] = plate
+    character.AncestryChanged:Connect(function(_, parent)
+        if parent == nil then stunPlates[character] = nil end
+    end)
+    return plate
+end
+
+task.spawn(function()
+    while true do
+        RunSvc.Heartbeat:Wait()
+        local now = workspace:GetServerTimeNow()
+        for _, other in ipairs(Players:GetPlayers()) do
+            local ch = other.Character
+            local ends = other:GetAttribute("StunEnds") or 0
+            local left = ends - now
+            if ch and left > 0 then
+                local plate = stunPlateFor(ch)
+                if plate then
+                    plate.gui.Enabled = true
+                    plate.clock.Text = math.max(1, math.ceil(left)) .. "s"
+                    scalePlate(plate, ch:FindFirstChild("Head"))
+                end
+            elseif ch and stunPlates[ch] then
+                stunPlates[ch].gui.Enabled = false
+            end
+        end
+    end
+end)
+
+Players.PlayerRemoving:Connect(function(other)
+    if other.Character then stunPlates[other.Character] = nil end
+end)
+
+Remote.OnClientEvent:Connect(function(kind, data)
+    if kind == "Pickup" then
+        carrying = data
+        cardTarget = 1
+
+    elseif kind == "Banked" then
+        carrying = nil; cardTarget = 0
+
+    elseif kind == "Caught" then
+        carrying = nil; cardTarget = 0
+
+    elseif kind == "Drop" then
+        carrying = nil; cardTarget = 0
+
+    elseif kind == "Gear" then
+
+        if type(data) == "table" then
+            if data.ok == false then
+                if data.why == "safe" then
+                    warnMsg("You can't use this in the safe zone")
+                elseif data.why == "carry" then
+                    warnMsg("Your hands are full - you're carrying an egg")
+                elseif data.why == "limit" then
+                    warnMsg("No traps left - wait for one to snap")
+                else
+                    warnMsg("You can't use this here")
+                end
+            elseif data.kind == "Trapped" then
+                warnMsg("Bear trap! You're stuck")
+            elseif data.kind == "Hit" then
+                warnMsg("Whacked by " .. tostring(data.by))
+            end
+        end
+
+    elseif kind == "Msg" then
+    end
+end)
+
+local DangerWatcher = true
+task.spawn(function()
+    local cam = workspace.CurrentCamera
+    local rayP = RaycastParams.new()
+    rayP.FilterType = Enum.RaycastFilterType.Exclude
+    while DangerWatcher do
+        local bosses = workspace:FindFirstChild("Bosses")
+        if bosses and cam then
+            local char = plr.Character
+            for _, m in ipairs(bosses:GetChildren()) do
+                local gui = m:FindFirstChild("Danger", true)
+                if gui then
+                    local show = false
+                    if m:GetAttribute("Angry") and gui.Adornee then
+                        local p = gui.Adornee.Position
+                        local sp, onScreen = cam:WorldToViewportPoint(p)
+                        if onScreen and sp.Z > 0 and sp.Z < 600 then
+                            rayP.FilterDescendantsInstances = {m, char}
+                            local dir = p - cam.CFrame.Position
+                            local hit = workspace:Raycast(cam.CFrame.Position, dir, rayP)
+                            show = (hit == nil)
+                        end
+                    end
+                    if gui.Enabled ~= show then gui.Enabled = show end
+                end
+            end
+        end
+        task.wait(0.12)
+    end
+end)
+
+RunSvc.Heartbeat:Connect(function(dt)
+    local now = os.clock()
+    if bAlpha == 0 and bTarget == 0 and cardAlpha == 0 and cardTarget == 0 then return end
+    local k = math.min(dt * 9, 1)
+    local vh = math.max(gui.AbsoluteSize.Y, 1)
+
+    if bTarget == 1 and now > bHoldUntil then bTarget = 0 end
+    bAlpha = lerp(bAlpha, bTarget, k)
+    if bAlpha < 0.004 and bTarget == 0 then bAlpha = 0 end
+    plate.Visible = bAlpha > 0.004
+    plate.BackgroundTransparency = 1 - bAlpha * 0.80
+    studs.ImageTransparency      = 1 - bAlpha * 0.42
+    pStroke.Transparency         = 1 - bAlpha
+    bLabel.TextTransparency       = 1 - bAlpha
+    bLabel.TextStrokeTransparency = 1 - bAlpha
+    plate.Position = UDim2.new(0.5, 0, 0, vh * 0.07 + (1 - bAlpha) * 16)
+
+    cardAlpha = lerp(cardAlpha, cardTarget, k)
+    if cardAlpha < 0.004 and cardTarget == 0 then cardAlpha = 0 end
+    local on = cardAlpha > 0.004
+    local pulse = 0.5 + 0.5 * math.sin(now * 6.5)
+
+    runPlate.Visible = on
+    runPlate.Position = UDim2.new(0.5, 0, 0, lerp(-90, vh * 0.05, cardAlpha))
+    runPlate.Size = UDim2.new(0, 250 + pulse * 22, 0, 74 + pulse * 8)
+
+    runPlate.BackgroundColor3 = Color3.new(
+        lerp(0.52, 0.95, pulse), lerp(0.06, 0.27, pulse), lerp(0.06, 0.18, pulse))
+    runPlate.BackgroundTransparency = 1 - cardAlpha
+    runStuds.ImageTransparency = 1 - cardAlpha * 0.30
+    runStroke.Transparency = 1 - cardAlpha
+    runLabel.TextTransparency = 1 - cardAlpha
+    runLabel.TextStrokeTransparency = 1 - cardAlpha
+
+    vig.Visible = on
+    for _, f in ipairs(edges) do
+        f.BackgroundTransparency = 1 - cardAlpha * (0.20 + pulse * 0.16)
+    end
+
+    dropBtn.Visible = on
+    dropBtn.Position = UDim2.new(0.5, 0, 1, lerp(110, -26, cardAlpha))
+    dropBtn.BackgroundTransparency = 1 - cardAlpha
+    dropStroke.Transparency = 1 - cardAlpha
+    dropStuds.ImageTransparency = 1 - cardAlpha * 0.30
+    dropIcon.ImageTransparency = 1 - cardAlpha
+    dropText.TextTransparency = 1 - cardAlpha
+    dropText.TextStrokeTransparency = 1 - cardAlpha
+
+end)
