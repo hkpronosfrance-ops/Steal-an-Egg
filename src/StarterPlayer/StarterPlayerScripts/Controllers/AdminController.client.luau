@@ -997,4 +997,285 @@ local function batTile(index, zone)
 	b:SetAttribute("HoverMaxGrow", 6)
 	local label = b:FindFirstChild("Label")
 	if label then
-		label.Size = UDim2.new(1, -52, 1, 0)
+		label.Size = UDim2.new(1, -52, 1, 0)		label.Position = UDim2.fromOffset(48, 0)
+		label.TextXAlignment = Enum.TextXAlignment.Left
+		label.TextScaled = false
+		label.TextSize = 14
+		label.Text = name
+	end
+	local icon = Instance.new("ImageLabel")
+	icon.Name = "Icon"
+	icon.BackgroundTransparency = 1
+	icon.Image = cfg and cfg.Icon or ""
+	icon.Size = UDim2.fromOffset(40, 40)
+	icon.Position = UDim2.fromOffset(6, 6)
+	icon.ScaleType = Enum.ScaleType.Fit
+	icon.ZIndex = 22
+	icon.Parent = b
+	if not cfg then
+		UIKit.boldLabel({
+			parent = b, name = "Dash", size = UDim2.fromOffset(40, 40), position = UDim2.fromOffset(6, 6),
+			text = "-", textSize = 26, zindex = 22,
+		})
+	end
+	batTiles[zone] = b
+end
+
+batTile(1, 0)
+for zone = 1, #BatCfg do batTile(zone + 1, zone) end
+
+local paintedBat
+task.spawn(function()
+	while true do
+		task.wait(0.5)
+		if panel.isOpen() then
+			local p = selected and PlayersSvc:FindFirstChild(selected.name)
+			local zone = p and tonumber(p:GetAttribute("BatEquipped")) or nil
+			if selected then
+				local cfg = zone and BatCfg[zone]
+				batInfo.Text = ("%s holds: %s"):format(selected.name,
+					zone == nil and "?" or (cfg and cfg.Name or "Default Bat"))
+			else
+				batInfo.Text = "nobody selected"
+			end
+			if paintedBat ~= zone then
+				paintedBat = zone
+				for z, b in pairs(batTiles) do UIKit.repaint(b, z == zone and K.inProgress or K.row) end
+			end
+		end
+	end
+end)
+end
+
+local EggCfg = require(ReplicatedStorage:WaitForChild("EggConfig"))
+
+local pageEggs = makePage("EGGS")
+
+local pick = { zone = 1, tier = 1, size = 3, count = 1, allZones = false }
+
+caption(pageEggs, "WHAT TO GIVE", 0)
+
+local ROW1_Y = CAP_GAP
+local FIELD_W = 92
+local SMALL_H = 38
+
+local zoneBox = UIKit.field({
+	parent = pageEggs, name = "Zone", size = UDim2.fromOffset(FIELD_W, SMALL_H),
+	position = UDim2.fromOffset(0, ROW1_Y), text = "1", placeholder = "zone", zindex = 16,
+})
+local countBox = UIKit.field({
+	parent = pageEggs, name = "Count", size = UDim2.fromOffset(FIELD_W, SMALL_H),
+	position = UDim2.fromOffset(FIELD_W + COL_GAP, ROW1_Y), text = "1", placeholder = "count", zindex = 16,
+})
+
+local TIER_TONE = { K.row, K.ready, K.claimed, K.bar }
+local tierButtons = {}
+local TIER_X = 2 * (FIELD_W + COL_GAP)
+local TIER_W = math.floor((CONTENT_W - TIER_X - 3 * COL_GAP) / 4)
+
+local function paintTiers()
+	for i, b in ipairs(tierButtons) do
+		UIKit.repaint(b, (i == pick.tier) and TIER_TONE[i] or K.lock)
+	end
+end
+
+for i, def in ipairs(EggCfg.TIERS) do
+	tierButtons[i] = UIKit.button({
+		parent = pageEggs, tone = K.lock, text = def.name:upper(), textSize = 14,
+		size = UDim2.fromOffset(TIER_W, SMALL_H),
+		position = UDim2.fromOffset(TIER_X + (i - 1) * (TIER_W + COL_GAP), ROW1_Y), zindex = 16,
+		onClick = function() pick.tier = i paintTiers() end,
+	})
+end
+paintTiers()
+
+local ROW2_Y = ROW1_Y + SMALL_H + 10
+local sizeButtons = {}
+local SIZE_W = math.floor((CONTENT_W - 5 * COL_GAP) / 6)
+
+local function paintSizes()
+	for i, b in ipairs(sizeButtons) do
+		UIKit.repaint(b, (i == pick.size) and K.prize or K.lock)
+	end
+end
+
+for i, def in ipairs(EggCfg.SIZES) do
+	sizeButtons[i] = UIKit.button({
+		parent = pageEggs, tone = K.lock, text = def.name:upper(), textSize = 14,
+		size = UDim2.fromOffset(SIZE_W, SMALL_H),
+		position = UDim2.fromOffset((i - 1) * (SIZE_W + COL_GAP), ROW2_Y), zindex = 16,
+		onClick = function() pick.size = i paintSizes() end,
+	})
+end
+paintSizes()
+
+local function readPick()
+	pick.zone = math.clamp(math.floor(tonumber(zoneBox.Text) or 1), 1, EggCfg.ZONES)
+	pick.count = math.clamp(math.floor(tonumber(countBox.Text) or 1), 1, 10)
+	zoneBox.Text = tostring(pick.zone)
+	countBox.Text = tostring(pick.count)
+end
+
+local ROW3_Y = ROW2_Y + SMALL_H + 12
+UIKit.button({
+	parent = pageEggs, tone = K.ready, text = "GIVE EGG TO SELECTED", textSize = 16,
+	size = UDim2.fromOffset(CONTENT_W, 44),
+	position = UDim2.fromOffset(0, ROW3_Y), zindex = 16,
+	onClick = function()
+		if not needSelected() then return end
+		readPick()
+		send(("%s egg %s %d %d %d %d"):format(PREFIX, selected.name,
+			pick.zone, pick.tier, pick.size, pick.count))
+	end,
+})
+
+local pageHatch = makePage("HATCHING")
+caption(pageHatch, "HATCHING", 0)
+
+local HATCH_W = math.floor((CONTENT_W - 2 * COL_GAP) / 3)
+UIKit.button({
+	parent = pageHatch, tone = K.ready, text = "READY: SELECTED", textSize = 15,
+	size = UDim2.fromOffset(HATCH_W, 44), position = UDim2.fromOffset(0, CAP_GAP), zindex = 16,
+	onClick = function()
+		if needSelected() then send(("%s ripen %s"):format(PREFIX, selected.name)) end
+	end,
+})
+UIKit.button({
+	parent = pageHatch, tone = K.claimed, text = "READY: THIS SERVER", textSize = 15,
+	size = UDim2.fromOffset(HATCH_W, 44),
+	position = UDim2.fromOffset(HATCH_W + COL_GAP, CAP_GAP), zindex = 16,
+	onClick = function() send(("%s ripenall"):format(PREFIX)) end,
+})
+UIKit.button({
+	parent = pageHatch, tone = K.prize, text = "READY: ALL SERVERS", textSize = 15,
+	size = UDim2.fromOffset(HATCH_W, 44),
+	position = UDim2.fromOffset(2 * (HATCH_W + COL_GAP), CAP_GAP), zindex = 16,
+	onClick = function()
+		confirm("Make every egg on EVERY server ready to hatch?", function()
+			send(("%s ripenall global"):format(PREFIX))
+		end)
+	end,
+})
+
+UIKit.boldLabel({
+	parent = pageHatch, size = UDim2.fromOffset(CONTENT_W, 22),
+	position = UDim2.fromOffset(0, CAP_GAP + 44 + 8),
+	text = "Eggs still need E to hatch - this only ends the countdown.",
+	align = Enum.TextXAlignment.Left, textSize = 14, colour = SECOND_TEXT, zindex = 16,
+})
+
+local pageMapEggs = makePage("MAPEGGS")
+caption(pageMapEggs, "EGGS ON THE MAP", 0)
+
+local MAP_ROW_Y = CAP_GAP
+local ALL_W = 190
+local allButton
+allButton = UIKit.button({
+	parent = pageMapEggs, tone = K.lock, text = "ALL ZONES: OFF", textSize = 15,
+	size = UDim2.fromOffset(ALL_W, 44), position = UDim2.fromOffset(0, MAP_ROW_Y), zindex = 16,
+	onClick = function()
+		pick.allZones = not pick.allZones
+		UIKit.repaint(allButton, pick.allZones and K.inProgress or K.lock)
+		local label = allButton:FindFirstChild("Label")
+		if label then
+			label.Text = pick.allZones and "ALL ZONES: ON" or "ALL ZONES: OFF"
+		end
+	end,
+})
+
+local SPAWN_COUNTS = { 1, 4, 12, 48 }
+local SP_W = math.floor((CONTENT_W - ALL_W - COL_GAP - (#SPAWN_COUNTS - 1) * COL_GAP) / #SPAWN_COUNTS)
+for i, howMany in ipairs(SPAWN_COUNTS) do
+	UIKit.button({
+		parent = pageMapEggs, tone = K.claimed, text = "SPAWN " .. howMany, textSize = 15,
+		size = UDim2.fromOffset(SP_W, 44),
+		position = UDim2.fromOffset(ALL_W + COL_GAP + (i - 1) * (SP_W + COL_GAP), MAP_ROW_Y),
+		zindex = 16,
+		onClick = function()
+			readPick()
+			send(("%s mapegg %s %d %d %d"):format(PREFIX,
+				pick.allZones and "all" or tostring(pick.zone), pick.tier, pick.size, howMany))
+		end,
+	})
+end
+
+UIKit.boldLabel({
+	parent = pageMapEggs, size = UDim2.fromOffset(CONTENT_W, 22),
+	position = UDim2.fromOffset(0, MAP_ROW_Y + 44 + 8),
+	text = "Uses quality and size selected in the EGGS tab; replaces eggs on the nests.",
+	align = Enum.TextXAlignment.Left, textSize = 14, colour = SECOND_TEXT, zindex = 16,
+})
+
+local function setPermission(v)
+	authorized = v
+	screen:SetAttribute("Authorized", v)
+end
+setPermission(false)
+
+remote.OnClientEvent:Connect(function(kind, data)
+	if kind == "auth" then
+		setPermission(data == true)
+	elseif kind == "denied" then
+		setPermission(false)
+		panel.close()
+	elseif kind == "state" then
+		roster = data or {}
+		renderPlayers()
+	elseif kind == "reply" then
+		log(tostring(data), K.bar.base)
+	elseif kind == "announce" then
+
+		local text = type(data) == "table" and tostring(data.text or "") or tostring(data)
+		local from = type(data) == "table" and tostring(data.fromName or "ADMIN") or "ADMIN"
+		log(("[announcement] %s: %s"):format(from, text), K.bar.hi)
+	end
+end)
+
+local function toggle()
+	if panel.isOpen() then
+		panel.close()
+		confirmPanel.close()
+		return
+	end
+	if authorized then
+		panel.open()
+		remote:FireServer("state")
+	else
+		remote:FireServer("auth")
+		task.delay(0.25, function()
+			if authorized then
+				panel.open()
+				remote:FireServer("state")
+			end
+		end)
+	end
+end
+
+local bus = ReplicatedStorage.Remotes:WaitForChild("OpenPanel")
+bus.Event:Connect(function(id)
+	if id == "Admin" then
+		toggle()
+	elseif panel.isOpen() then
+		panel.close()
+		confirmPanel.close()
+	end
+end)
+
+UserInputService.InputBegan:Connect(function(input, processed)
+	if processed then return end
+	if input.KeyCode == Enum.KeyCode.F2 then toggle() end
+end)
+
+task.spawn(function()
+	while true do
+		task.wait(4)
+		if panel.isOpen() and authorized then remote:FireServer("state") end
+	end
+end)
+
+fitSections()
+task.defer(fitSections)
+showTab("PLAYER")
+panel.close()
+confirmPanel.close()
+remote:FireServer("auth")
