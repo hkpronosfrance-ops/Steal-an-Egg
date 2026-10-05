@@ -997,7 +997,8 @@ end)
 UIS.InputEnded:Connect(function(input)
     if drag and (input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch) then
         endDrag(Vector2.new(input.Position.X, input.Position.Y))
-    endend)
+    end
+end)
 
 local cards = {}
 
