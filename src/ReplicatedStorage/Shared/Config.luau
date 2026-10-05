@@ -12,12 +12,12 @@ Config.DefaultSettings = {
 }
 
 Config.FreeReward = {
-	GroupId = 462497082,
+	GroupId = 0,
 	Speed = 5000,
 }
 
 Config.Admin = {
-	UserIds = { 4954213545 },
+	UserIds = {},
 	GroupId = 0,
 	MinRank = 250,
 	StudioAlwaysAdmin = true,
