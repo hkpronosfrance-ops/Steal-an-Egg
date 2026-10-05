@@ -36,8 +36,8 @@ if __isFrench then
         ["SELL PETS"] = "VENDRE LES ANIMAUX",
         ["SELL EGGS"] = "VENDRE LES ŒUFS",
         ["SELL ALL"] = "TOUT VENDRE",
-        ["TRAILS SHOP"] = "BOUTIQUE DE TRAÎNÉES",
-        ["TRAIL SHOP"] = "BOUTIQUE DE TRAÎNÉES",
+        ["TRAILS SHOP"] = "BOUTIQUE DE SENTIERS",
+        ["TRAIL SHOP"] = "BOUTIQUE DE SENTIERS",
         ["SETTINGS"] = "PARAMÈTRES",
         ["ON"] = "ACTIVÉ",
         ["OFF"] = "DÉSACTIVÉ",
@@ -91,7 +91,7 @@ if __isFrench then
         ["already claimed"] = "déjà récupérée",
         ["join the group first"] = "rejoins d'abord le groupe",
         ["You already claimed the group reward"] = "Tu as déjà récupéré la récompense du groupe",
-        ["TRAIL SHOP"] = "BOUTIQUE DE TRAÎNÉES",
+        ["TRAIL SHOP"] = "BOUTIQUE DE SENTIERS",
         ["OWNED"] = "POSSÉDÉ",
         ["PASSES"] = "PASSES",
         ["Gift Player"] = "Offrir à un joueur",
@@ -336,7 +336,7 @@ do
 
             -- Window headings / controls
             ["FREE REWARDS"]="RÉCOMPENSES GRATUITES", ["PET INDEX"]="INDEX DES ANIMAUX",
-            ["TRAIL SHOP"]="BOUTIQUE DE TRAÎNÉES", ["Fuse Machine"]="Machine de fusion",
+            ["TRAIL SHOP"]="BOUTIQUE DE SENTIERS", ["Fuse Machine"]="Machine de fusion",
             ["GROWING EGGS"]="ŒUFS EN CROISSANCE", ["ACTIVE PETS"]="ANIMAUX ACTIFS",
             ["REBIRTH"]="RENAISSANCE", ["SETTINGS"]="PARAMÈTRES", ["SHOP"]="BOUTIQUE",
             ["SELL SHOP"]="BOUTIQUE DE VENTE", ["SELL"]="VENDRE", ["FUSE"]="FUSIONNER",
@@ -560,18 +560,34 @@ do
             local ok,v=pcall(function() return o[p] end); if not ok then return end
             local nv=tr2(v)
 
-            -- World sign fix: the French Trails Shop title is much wider than
-            -- the English source text. Billboard/Surface UI absolute sizing can
-            -- vary with camera projection, which made it wrap between 1 and 2
-            -- lines while moving the camera. Keep this title on one line and
-            -- let TextScaled reduce the glyph size instead.
-            if p == "Text" and (o:IsA("TextLabel") or o:IsA("TextButton")) then
-                if v == "TRAILS SHOP" or v == "TRAIL SHOP" or nv == "BOUTIQUE DE TRAÎNÉES" then
-                    pcall(function()
-                        o.TextWrapped = false
-                        o.TextScaled = true
-                    end)
-                end
+            -- The world Trail Shop sign used TextScaled + wrapping. Its effective
+            -- layout changed with camera projection, so the French title jumped
+            -- between one and two lines. For this world-space sign only, use a
+            -- fixed font size and continuously keep wrapping disabled.
+            local isTrailShop = p == "Text"
+                and (o:IsA("TextLabel") or o:IsA("TextButton"))
+                and o:IsDescendantOf(workspace)
+                and (
+                    v == "TRAILS SHOP"
+                    or v == "TRAIL SHOP"
+                    or v == "BOUTIQUE DE TRAÎNÉES"
+                    or v == "BOUTIQUE DE SENTIERS"
+                    or nv == "BOUTIQUE DE SENTIERS"
+                )
+
+            if isTrailShop then
+                nv = "BOUTIQUE DE SENTIERS"
+                busy[o]=true
+                pcall(function()
+                    o.Text = nv
+                    o.TextWrapped = false
+                    o.TextScaled = false
+                    o.TextSize = 24
+                    o.TextXAlignment = Enum.TextXAlignment.Center
+                    o.TextYAlignment = Enum.TextYAlignment.Center
+                end)
+                busy[o]=nil
+                return
             end
 
             if nv~=v then busy[o]=true; pcall(function() o[p]=nv end); busy[o]=nil end
@@ -579,7 +595,33 @@ do
         local function bind(o)
             if seen[o] then return end
             if o:IsA("TextLabel") or o:IsA("TextButton") then
-                seen[o]=true; apply(o,"Text"); o:GetPropertyChangedSignal("Text"):Connect(function() apply(o,"Text") end)
+                seen[o]=true
+                apply(o,"Text")
+                o:GetPropertyChangedSignal("Text"):Connect(function() apply(o,"Text") end)
+
+                -- Re-assert the fixed world-sign layout if another script/UI
+                -- recalculates these properties after the initial translation.
+                if o:IsDescendantOf(workspace) then
+                    local function keepTrailShopStable()
+                        local t = o.Text
+                        if t == "TRAILS SHOP" or t == "TRAIL SHOP"
+                            or t == "BOUTIQUE DE TRAÎNÉES"
+                            or t == "BOUTIQUE DE SENTIERS" then
+                            if busy[o] then return end
+                            busy[o]=true
+                            pcall(function()
+                                o.Text = "BOUTIQUE DE SENTIERS"
+                                o.TextWrapped = false
+                                o.TextScaled = false
+                                o.TextSize = 24
+                            end)
+                            busy[o]=nil
+                        end
+                    end
+                    o:GetPropertyChangedSignal("TextWrapped"):Connect(keepTrailShopStable)
+                    o:GetPropertyChangedSignal("TextScaled"):Connect(keepTrailShopStable)
+                    o:GetPropertyChangedSignal("TextSize"):Connect(keepTrailShopStable)
+                end
             elseif o:IsA("TextBox") then
                 seen[o]=true; apply(o,"PlaceholderText"); o:GetPropertyChangedSignal("PlaceholderText"):Connect(function() apply(o,"PlaceholderText") end)
             elseif o:IsA("ProximityPrompt") then
