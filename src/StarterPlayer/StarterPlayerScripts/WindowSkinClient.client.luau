@@ -81,7 +81,7 @@ if __isFrench then
         ["ALL EGGS RESET!"] = "TOUS LES ŒUFS ONT ÉTÉ RÉINITIALISÉS !",
         ["The map is closed at night!"] = "La carte est fermée la nuit !",
         ["LEGENDARY EGG"] = "ŒUF LÉGENDAIRE",
-        ["FREE REWARDS"] = "RÉCOMPENSE GRATUIT",
+        ["FREE REWARDS"] = "RÉCOMPENSE GRATUITE",
         ["Like the Game!"] = "AIMEZ LE JEU !",
         ["Join Our Group!"] = "REJOIGNEZ LA COMMUNAUTÉ !",
         ["Thank You!"] = "Merci !",
@@ -338,7 +338,7 @@ do
             ["RICHEST"]="PLUS RICHE", ["FASTEST"]="PLUS RAPIDE", ["FUSE MACHINE"]="MACHINE DE FUSION",
 
             -- Window headings / controls
-            ["FREE REWARDS"]="RÉCOMPENSE GRATUIT", ["PET INDEX"]="INDEX DES ANIMAUX",
+            ["FREE REWARDS"]="RÉCOMPENSE GRATUITE", ["PET INDEX"]="INDEX DES ANIMAUX",
             ["TRAIL SHOP"]="BOUTIQUE DE SENTIERS", ["Fuse Machine"]="Machine de fusion",
             ["GROWING EGGS"]="ŒUFS EN CROISSANCE", ["ACTIVE PETS"]="ANIMAUX ACTIFS",
             ["REBIRTH"]="RENAISSANCE", ["SETTINGS"]="PARAMÈTRES", ["SHOP"]="BOUTIQUE",
