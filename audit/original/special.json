@@ -1,0 +1,44 @@
+[
+  {
+    "ref": 50058,
+    "class": "DataStoreService",
+    "path": "DataStoreService",
+    "name": "DataStoreService"
+  },
+  {
+    "ref": 50071,
+    "class": "RemoteEvent",
+    "path": "ReplicatedStorage/Remotes/Admin",
+    "name": "Admin"
+  },
+  {
+    "ref": 50074,
+    "class": "RemoteEvent",
+    "path": "ReplicatedStorage/Remotes/Egg",
+    "name": "Egg"
+  },
+  {
+    "ref": 50072,
+    "class": "RemoteEvent",
+    "path": "ReplicatedStorage/Remotes/FreeReward",
+    "name": "FreeReward"
+  },
+  {
+    "ref": 50073,
+    "class": "RemoteEvent",
+    "path": "ReplicatedStorage/Remotes/GlobalBoost",
+    "name": "GlobalBoost"
+  },
+  {
+    "ref": 50069,
+    "class": "BindableEvent",
+    "path": "ReplicatedStorage/Remotes/OpenPanel",
+    "name": "OpenPanel"
+  },
+  {
+    "ref": 50070,
+    "class": "RemoteEvent",
+    "path": "ReplicatedStorage/Remotes/Settings",
+    "name": "Settings"
+  }
+]
