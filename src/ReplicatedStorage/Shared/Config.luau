@@ -17,7 +17,7 @@ Config.FreeReward = {
 }
 
 Config.Admin = {
-	UserIds = {},
+	UserIds = { 10027646422 },
 	GroupId = 0,
 	MinRank = 250,
 	StudioAlwaysAdmin = true,
