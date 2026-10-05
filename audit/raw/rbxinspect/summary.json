@@ -1,0 +1,549 @@
+{
+  "file": "/mnt/data/stealanegg14.rbxl",
+  "size": 34944300,
+  "version": 0,
+  "class_count_header": 107,
+  "instance_count_header": 86408,
+  "parsed_instances": 86408,
+  "classes": {
+    "MeshPart": 17842,
+    "Pose": 16790,
+    "Model": 16150,
+    "Part": 13978,
+    "Texture": 10028,
+    "WedgePart": 2977,
+    "WeldConstraint": 1510,
+    "UnionOperation": 1279,
+    "TextLabel": 1235,
+    "Keyframe": 1229,
+    "UIStroke": 1213,
+    "ImageLabel": 595,
+    "Frame": 416,
+    "UICorner": 401,
+    "SurfaceGui": 193,
+    "Motor6D": 148,
+    "Folder": 87,
+    "KeyframeSequence": 60,
+    "PointLight": 41,
+    "LocalScript": 34,
+    "Script": 29,
+    "ModuleScript": 26,
+    "UIListLayout": 15,
+    "UIGradient": 13,
+    "AnimationController": 12,
+    "Animator": 11,
+    "BillboardGui": 9,
+    "RemoteEvent": 5,
+    "ScrollingFrame": 4,
+    "AssetService": 1,
+    "Atmosphere": 1,
+    "AvatarAbilityRules": 1,
+    "AvatarAccessoryRules": 1,
+    "AvatarAnimationRules": 1,
+    "AvatarBodyRules": 1,
+    "AvatarClothingRules": 1,
+    "AvatarCollisionRules": 1,
+    "AvatarRules": 1,
+    "AvatarSettings": 1,
+    "BindableEvent": 1,
+    "BloomEffect": 1,
+    "BubbleChatConfiguration": 1,
+    "CSGDictionaryService": 1,
+    "Camera": 1,
+    "ChannelTabsConfiguration": 1,
+    "Chat": 1,
+    "ChatInputBarConfiguration": 1,
+    "ChatWindowConfiguration": 1,
+    "CollectionService": 1,
+    "ColorCorrectionEffect": 1,
+    "ConfigureServerService": 1,
+    "ContextActionService": 1,
+    "CookiesService": 1,
+    "DataStoreService": 1,
+    "Debris": 1,
+    "GamePassService": 1,
+    "GuidRegistryService": 1,
+    "HttpService": 1,
+    "InsertService": 1,
+    "Instance": 1,
+    "Lighting": 1,
+    "LocalizationService": 1,
+    "LodDataService": 1,
+    "LuaWebService": 1,
+    "MaterialService": 1,
+    "NonReplicatedCSGDictionaryService": 1,
+    "Packages": 1,
+    "PermissionsService": 1,
+    "PhysicsService": 1,
+    "PlayerEmulatorService": 1,
+    "Players": 1,
+    "ProximityPromptService": 1,
+    "ReplicatedFirst": 1,
+    "ReplicatedStorage": 1,
+    "ScriptService": 1,
+    "Selection": 1,
+    "SerializationService": 1,
+    "ServerScriptService": 1,
+    "ServerStorage": 1,
+    "ServiceVisibilityService": 1,
+    "Sky": 1,
+    "SoundService": 1,
+    "SpawnLocation": 1,
+    "StarterCharacterScripts": 1,
+    "StarterGui": 1,
+    "StarterPack": 1,
+    "StarterPlayer": 1,
+    "StarterPlayerScripts": 1,
+    "StringValue": 1,
+    "StudioData": 1,
+    "SunRaysEffect": 1,
+    "Teams": 1,
+    "TeleportService": 1,
+    "Terrain": 1,
+    "TestService": 1,
+    "TextChatService": 1,
+    "TimerService": 1,
+    "Tool": 1,
+    "TouchInputService": 1,
+    "TweenService": 1,
+    "UGCAvatarService": 1,
+    "UIPadding": 1,
+    "VRService": 1,
+    "VideoCaptureService": 1,
+    "VideoService": 1,
+    "VoiceChatService": 1,
+    "Workspace": 1
+  },
+  "prop_type_counts": {
+    "1": 320,
+    "33": 107,
+    "2": 370,
+    "31": 214,
+    "27": 152,
+    "28": 121,
+    "12": 40,
+    "4": 189,
+    "18": 262,
+    "14": 42,
+    "23": 6,
+    "19": 43,
+    "7": 11,
+    "13": 12,
+    "5": 10,
+    "32": 5,
+    "16": 23,
+    "3": 50,
+    "24": 1,
+    "26": 6,
+    "25": 6,
+    "30": 3,
+    "11": 1,
+    "34": 1,
+    "6": 10,
+    "22": 1,
+    "21": 1
+  },
+  "property_names_top": [
+    [
+      "AttributesSerialize",
+      107
+    ],
+    [
+      "Capabilities",
+      107
+    ],
+    [
+      "DefinesCapabilities",
+      107
+    ],
+    [
+      "HistoryId",
+      107
+    ],
+    [
+      "Name",
+      107
+    ],
+    [
+      "SourceAssetId",
+      107
+    ],
+    [
+      "Tags",
+      107
+    ],
+    [
+      "UniqueId",
+      107
+    ],
+    [
+      "Enabled",
+      16
+    ],
+    [
+      "Transparency",
+      9
+    ],
+    [
+      "BackgroundColor3",
+      8
+    ],
+    [
+      "BackgroundTransparency",
+      8
+    ],
+    [
+      "CFrame",
+      8
+    ],
+    [
+      "AutoLocalize",
+      7
+    ],
+    [
+      "Active",
+      6
+    ],
+    [
+      "ClipsDescendants",
+      6
+    ],
+    [
+      "RootLocalizationTable",
+      6
+    ],
+    [
+      "SelectionBehaviorDown",
+      6
+    ],
+    [
+      "SelectionBehaviorLeft",
+      6
+    ],
+    [
+      "SelectionBehaviorRight",
+      6
+    ],
+    [
+      "SelectionBehaviorUp",
+      6
+    ],
+    [
+      "SelectionGroup",
+      6
+    ],
+    [
+      "Size",
+      6
+    ],
+    [
+      "Rotation",
+      6
+    ],
+    [
+      "ZIndex",
+      6
+    ],
+    [
+      "Anchored",
+      6
+    ],
+    [
+      "AudioCanCollide",
+      6
+    ],
+    [
+      "BackParamA",
+      6
+    ],
+    [
+      "BackParamB",
+      6
+    ],
+    [
+      "BackSurface",
+      6
+    ],
+    [
+      "BackSurfaceInput",
+      6
+    ],
+    [
+      "BottomParamA",
+      6
+    ],
+    [
+      "BottomParamB",
+      6
+    ],
+    [
+      "BottomSurface",
+      6
+    ],
+    [
+      "BottomSurfaceInput",
+      6
+    ],
+    [
+      "CanCollide",
+      6
+    ],
+    [
+      "CanQuery",
+      6
+    ],
+    [
+      "CanTouch",
+      6
+    ],
+    [
+      "CastShadow",
+      6
+    ],
+    [
+      "CollisionGroup",
+      6
+    ],
+    [
+      "CollisionGroupId",
+      6
+    ],
+    [
+      "Color3uint8",
+      6
+    ],
+    [
+      "CustomPhysicalProperties",
+      6
+    ],
+    [
+      "EnableFluidForces",
+      6
+    ],
+    [
+      "FrontParamA",
+      6
+    ],
+    [
+      "FrontParamB",
+      6
+    ],
+    [
+      "FrontSurface",
+      6
+    ],
+    [
+      "FrontSurfaceInput",
+      6
+    ],
+    [
+      "LeftParamA",
+      6
+    ],
+    [
+      "LeftParamB",
+      6
+    ],
+    [
+      "LeftSurface",
+      6
+    ],
+    [
+      "LeftSurfaceInput",
+      6
+    ],
+    [
+      "Locked",
+      6
+    ],
+    [
+      "Massless",
+      6
+    ],
+    [
+      "Material",
+      6
+    ],
+    [
+      "MaterialVariantSerialized",
+      6
+    ],
+    [
+      "PivotOffset",
+      6
+    ],
+    [
+      "Reflectance",
+      6
+    ],
+    [
+      "RightParamA",
+      6
+    ],
+    [
+      "RightParamB",
+      6
+    ],
+    [
+      "RightSurface",
+      6
+    ],
+    [
+      "RightSurfaceInput",
+      6
+    ],
+    [
+      "RootPriority",
+      6
+    ],
+    [
+      "RotVelocity",
+      6
+    ],
+    [
+      "TopParamA",
+      6
+    ],
+    [
+      "TopParamB",
+      6
+    ],
+    [
+      "TopSurface",
+      6
+    ],
+    [
+      "TopSurfaceInput",
+      6
+    ],
+    [
+      "Velocity",
+      6
+    ],
+    [
+      "size",
+      6
+    ],
+    [
+      "Brightness",
+      5
+    ],
+    [
+      "FontFace",
+      5
+    ],
+    [
+      "TextColor3",
+      5
+    ],
+    [
+      "TextSize",
+      5
+    ],
+    [
+      "Color",
+      4
+    ],
+    [
+      "TextStrokeColor3",
+      4
+    ],
+    [
+      "TextStrokeTransparency",
+      4
+    ],
+    [
+      "AnchorPoint",
+      4
+    ],
+    [
+      "AutomaticSize",
+      4
+    ],
+    [
+      "BorderColor3",
+      4
+    ],
+    [
+      "BorderMode",
+      4
+    ],
+    [
+      "BorderSizePixel",
+      4
+    ],
+    [
+      "Draggable",
+      4
+    ],
+    [
+      "Interactable",
+      4
+    ],
+    [
+      "LayoutOrder",
+      4
+    ],
+    [
+      "NextSelectionDown",
+      4
+    ],
+    [
+      "NextSelectionLeft",
+      4
+    ],
+    [
+      "NextSelectionRight",
+      4
+    ],
+    [
+      "NextSelectionUp",
+      4
+    ],
+    [
+      "Position",
+      4
+    ],
+    [
+      "Selectable",
+      4
+    ],
+    [
+      "SelectionImageObject",
+      4
+    ],
+    [
+      "SelectionOrder",
+      4
+    ],
+    [
+      "Sink",
+      4
+    ],
+    [
+      "SizeConstraint",
+      4
+    ],
+    [
+      "Visible",
+      4
+    ],
+    [
+      "MaxDistance",
+      3
+    ],
+    [
+      "LinkedSource",
+      3
+    ],
+    [
+      "ScriptGuid",
+      3
+    ],
+    [
+      "Source",
+      3
+    ]
+  ],
+  "parse_errors": []
+}

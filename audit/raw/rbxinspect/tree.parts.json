@@ -1,0 +1,44 @@
+{
+  "source": "rbxinspect/tree.txt",
+  "encoding": "utf-8",
+  "sha256": "299d001f8ad79bb1b316e182646d2526c606a4f616b5a06f4a401ee87be4e95a",
+  "size_bytes": 1121155,
+  "reconstruct": "Concatenate parts in order with no separator.",
+  "parts": [
+    {
+      "file": "rbx_tree_part_001.txt",
+      "size_bytes": 180000,
+      "sha256": "70a2fa29d1169c4df040601f72b133005504cad71855061d795547e5819aa9df"
+    },
+    {
+      "file": "rbx_tree_part_002.txt",
+      "size_bytes": 180000,
+      "sha256": "022f34e824acab0bffc40f6691487fdffc5c6c18e2bf5ff76cdb617300536855"
+    },
+    {
+      "file": "rbx_tree_part_003.txt",
+      "size_bytes": 180000,
+      "sha256": "a92d7ffce5f501820da86ead34368e8a638de867cbd578ae645b9a61a56c2752"
+    },
+    {
+      "file": "rbx_tree_part_004.txt",
+      "size_bytes": 180000,
+      "sha256": "0e4e2d967a844b4d40d52f928586c38c699d23973ac9d90da7920d1925fc51be"
+    },
+    {
+      "file": "rbx_tree_part_005.txt",
+      "size_bytes": 180000,
+      "sha256": "76cde9105a8298e0658d904c1af559cc579a1d434e521cbb14c79310d5aa6584"
+    },
+    {
+      "file": "rbx_tree_part_006.txt",
+      "size_bytes": 180000,
+      "sha256": "e19dd70db35ff582fec64d34643318ef0b07f4b554bad12bdd87c66a3fde690e"
+    },
+    {
+      "file": "rbx_tree_part_007.txt",
+      "size_bytes": 41155,
+      "sha256": "bccd2dcc2cc49b72bc772361fa62455bc2d0927ad1311d0085e2bcd4ba68ba81"
+    }
+  ]
+}

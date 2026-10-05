@@ -1,0 +1,803 @@
+[
+  {
+    "ref": 49978,
+    "class": "LocalScript",
+    "path": "ReplicatedFirst/Preloader",
+    "name": "Preloader",
+    "source_len": 3421,
+    "disabled": 0,
+    "run_context": 0
+  },
+  {
+    "ref": 50083,
+    "class": "ModuleScript",
+    "path": "ReplicatedStorage/AnimalPaint",
+    "name": "AnimalPaint",
+    "source_len": 27607,
+    "disabled": null,
+    "run_context": null
+  },
+  {
+    "ref": 50095,
+    "class": "ModuleScript",
+    "path": "ReplicatedStorage/AnimalRarity",
+    "name": "AnimalRarity",
+    "source_len": 2955,
+    "disabled": null,
+    "run_context": null
+  },
+  {
+    "ref": 50082,
+    "class": "ModuleScript",
+    "path": "ReplicatedStorage/AnimalRig",
+    "name": "AnimalRig",
+    "source_len": 28611,
+    "disabled": null,
+    "run_context": null
+  },
+  {
+    "ref": 50092,
+    "class": "ModuleScript",
+    "path": "ReplicatedStorage/BatConfig",
+    "name": "BatConfig",
+    "source_len": 2762,
+    "disabled": null,
+    "run_context": null
+  },
+  {
+    "ref": 50091,
+    "class": "ModuleScript",
+    "path": "ReplicatedStorage/BossAnim",
+    "name": "BossAnim",
+    "source_len": 1737,
+    "disabled": null,
+    "run_context": null
+  },
+  {
+    "ref": 50093,
+    "class": "ModuleScript",
+    "path": "ReplicatedStorage/CaptureEggConfig",
+    "name": "CaptureEggConfig",
+    "source_len": 295,
+    "disabled": null,
+    "run_context": null
+  },
+  {
+    "ref": 50088,
+    "class": "ModuleScript",
+    "path": "ReplicatedStorage/DayNightConfig",
+    "name": "DayNightConfig",
+    "source_len": 640,
+    "disabled": null,
+    "run_context": null
+  },
+  {
+    "ref": 50081,
+    "class": "ModuleScript",
+    "path": "ReplicatedStorage/EggConfig",
+    "name": "EggConfig",
+    "source_len": 11832,
+    "disabled": null,
+    "run_context": null
+  },
+  {
+    "ref": 50089,
+    "class": "ModuleScript",
+    "path": "ReplicatedStorage/FuseConfig",
+    "name": "FuseConfig",
+    "source_len": 1622,
+    "disabled": null,
+    "run_context": null
+  },
+  {
+    "ref": 50090,
+    "class": "ModuleScript",
+    "path": "ReplicatedStorage/MonetizationConfig",
+    "name": "MonetizationConfig",
+    "source_len": 5651,
+    "disabled": null,
+    "run_context": null
+  },
+  {
+    "ref": 50094,
+    "class": "ModuleScript",
+    "path": "ReplicatedStorage/RebirthConfig",
+    "name": "RebirthConfig",
+    "source_len": 1263,
+    "disabled": null,
+    "run_context": null
+  },
+  {
+    "ref": 50087,
+    "class": "ModuleScript",
+    "path": "ReplicatedStorage/SellConfig",
+    "name": "SellConfig",
+    "source_len": 673,
+    "disabled": null,
+    "run_context": null
+  },
+  {
+    "ref": 50079,
+    "class": "ModuleScript",
+    "path": "ReplicatedStorage/Shared/AssetQueue",
+    "name": "AssetQueue",
+    "source_len": 1597,
+    "disabled": null,
+    "run_context": null
+  },
+  {
+    "ref": 50076,
+    "class": "ModuleScript",
+    "path": "ReplicatedStorage/Shared/Config",
+    "name": "Config",
+    "source_len": 640,
+    "disabled": null,
+    "run_context": null
+  },
+  {
+    "ref": 50078,
+    "class": "ModuleScript",
+    "path": "ReplicatedStorage/Shared/Sfx",
+    "name": "Sfx",
+    "source_len": 1362,
+    "disabled": null,
+    "run_context": null
+  },
+  {
+    "ref": 50077,
+    "class": "ModuleScript",
+    "path": "ReplicatedStorage/Shared/UIKit",
+    "name": "UIKit",
+    "source_len": 22180,
+    "disabled": null,
+    "run_context": null
+  },
+  {
+    "ref": 50080,
+    "class": "ModuleScript",
+    "path": "ReplicatedStorage/Shared/WindowSkin",
+    "name": "WindowSkin",
+    "source_len": 27342,
+    "disabled": null,
+    "run_context": null
+  },
+  {
+    "ref": 50084,
+    "class": "ModuleScript",
+    "path": "ReplicatedStorage/SpeedPassConfig",
+    "name": "SpeedPassConfig",
+    "source_len": 809,
+    "disabled": null,
+    "run_context": null
+  },
+  {
+    "ref": 50085,
+    "class": "ModuleScript",
+    "path": "ReplicatedStorage/TrailConfig",
+    "name": "TrailConfig",
+    "source_len": 2426,
+    "disabled": null,
+    "run_context": null
+  },
+  {
+    "ref": 50086,
+    "class": "ModuleScript",
+    "path": "ReplicatedStorage/UpgradeConfig",
+    "name": "UpgradeConfig",
+    "source_len": 1218,
+    "disabled": null,
+    "run_context": null
+  },
+  {
+    "ref": 50126,
+    "class": "Script",
+    "path": "ServerScriptService/AdminTreadmillService",
+    "name": "AdminTreadmillService",
+    "source_len": 6322,
+    "disabled": 0,
+    "run_context": 0
+  },
+  {
+    "ref": 50130,
+    "class": "ModuleScript",
+    "path": "ServerScriptService/AnimalEggs",
+    "name": "AnimalEggs",
+    "source_len": 1787,
+    "disabled": null,
+    "run_context": null
+  },
+  {
+    "ref": 50111,
+    "class": "Script",
+    "path": "ServerScriptService/AssetManifest",
+    "name": "AssetManifest",
+    "source_len": 3657,
+    "disabled": 0,
+    "run_context": 0
+  },
+  {
+    "ref": 50127,
+    "class": "ModuleScript",
+    "path": "ServerScriptService/BatService",
+    "name": "BatService",
+    "source_len": 4925,
+    "disabled": null,
+    "run_context": null
+  },
+  {
+    "ref": 50119,
+    "class": "Script",
+    "path": "ServerScriptService/BoostStarter",
+    "name": "BoostStarter",
+    "source_len": 493,
+    "disabled": 0,
+    "run_context": 0
+  },
+  {
+    "ref": 50129,
+    "class": "Script",
+    "path": "ServerScriptService/CaptureEggService",
+    "name": "CaptureEggService",
+    "source_len": 13668,
+    "disabled": 0,
+    "run_context": 0
+  },
+  {
+    "ref": 50123,
+    "class": "Script",
+    "path": "ServerScriptService/DayNightService",
+    "name": "DayNightService",
+    "source_len": 10170,
+    "disabled": 0,
+    "run_context": 0
+  },
+  {
+    "ref": 50112,
+    "class": "Script",
+    "path": "ServerScriptService/EggBossService",
+    "name": "EggBossService",
+    "source_len": 75565,
+    "disabled": 0,
+    "run_context": 0
+  },
+  {
+    "ref": 50125,
+    "class": "Script",
+    "path": "ServerScriptService/FuseService",
+    "name": "FuseService",
+    "source_len": 3508,
+    "disabled": 0,
+    "run_context": 0
+  },
+  {
+    "ref": 50115,
+    "class": "Script",
+    "path": "ServerScriptService/LevelService",
+    "name": "LevelService",
+    "source_len": 8396,
+    "disabled": 0,
+    "run_context": 0
+  },
+  {
+    "ref": 50116,
+    "class": "Script",
+    "path": "ServerScriptService/MapBounds",
+    "name": "MapBounds",
+    "source_len": 1664,
+    "disabled": 0,
+    "run_context": 0
+  },
+  {
+    "ref": 50114,
+    "class": "Script",
+    "path": "ServerScriptService/NestService",
+    "name": "NestService",
+    "source_len": 45152,
+    "disabled": 0,
+    "run_context": 0
+  },
+  {
+    "ref": 50118,
+    "class": "Script",
+    "path": "ServerScriptService/PetIndexService",
+    "name": "PetIndexService",
+    "source_len": 9509,
+    "disabled": 0,
+    "run_context": 0
+  },
+  {
+    "ref": 50124,
+    "class": "Script",
+    "path": "ServerScriptService/PlayerListStats",
+    "name": "PlayerListStats",
+    "source_len": 1751,
+    "disabled": 0,
+    "run_context": 0
+  },
+  {
+    "ref": 50113,
+    "class": "Script",
+    "path": "ServerScriptService/PlotService",
+    "name": "PlotService",
+    "source_len": 12298,
+    "disabled": 0,
+    "run_context": 0
+  },
+  {
+    "ref": 50121,
+    "class": "Script",
+    "path": "ServerScriptService/PlotUpgradeService",
+    "name": "PlotUpgradeService",
+    "source_len": 5068,
+    "disabled": 0,
+    "run_context": 0
+  },
+  {
+    "ref": 50122,
+    "class": "Script",
+    "path": "ServerScriptService/SellService",
+    "name": "SellService",
+    "source_len": 3482,
+    "disabled": 0,
+    "run_context": 0
+  },
+  {
+    "ref": 50102,
+    "class": "Script",
+    "path": "ServerScriptService/Services/AdminService",
+    "name": "AdminService",
+    "source_len": 17622,
+    "disabled": 0,
+    "run_context": 0
+  },
+  {
+    "ref": 50104,
+    "class": "Script",
+    "path": "ServerScriptService/Services/CharacterService",
+    "name": "CharacterService",
+    "source_len": 1116,
+    "disabled": 0,
+    "run_context": 0
+  },
+  {
+    "ref": 50103,
+    "class": "Script",
+    "path": "ServerScriptService/Services/FreeRewardService",
+    "name": "FreeRewardService",
+    "source_len": 2768,
+    "disabled": 0,
+    "run_context": 0
+  },
+  {
+    "ref": 50105,
+    "class": "ModuleScript",
+    "path": "ServerScriptService/Services/GlobalBoostService",
+    "name": "GlobalBoostService",
+    "source_len": 6850,
+    "disabled": null,
+    "run_context": null
+  },
+  {
+    "ref": 50107,
+    "class": "Script",
+    "path": "ServerScriptService/Services/LeaderboardService",
+    "name": "LeaderboardService",
+    "source_len": 5521,
+    "disabled": 0,
+    "run_context": 0
+  },
+  {
+    "ref": 50100,
+    "class": "Script",
+    "path": "ServerScriptService/Services/NameplateService",
+    "name": "NameplateService",
+    "source_len": 804,
+    "disabled": 0,
+    "run_context": 0
+  },
+  {
+    "ref": 50106,
+    "class": "Script",
+    "path": "ServerScriptService/Services/PurchaseService",
+    "name": "PurchaseService",
+    "source_len": 2924,
+    "disabled": 0,
+    "run_context": 0
+  },
+  {
+    "ref": 50110,
+    "class": "Script",
+    "path": "ServerScriptService/Services/RebirthService",
+    "name": "RebirthService",
+    "source_len": 2494,
+    "disabled": 0,
+    "run_context": 0
+  },
+  {
+    "ref": 50101,
+    "class": "Script",
+    "path": "ServerScriptService/Services/SettingsService",
+    "name": "SettingsService",
+    "source_len": 1504,
+    "disabled": 0,
+    "run_context": 0
+  },
+  {
+    "ref": 50108,
+    "class": "Script",
+    "path": "ServerScriptService/Services/ShopService",
+    "name": "ShopService",
+    "source_len": 9780,
+    "disabled": 0,
+    "run_context": 0
+  },
+  {
+    "ref": 50109,
+    "class": "Script",
+    "path": "ServerScriptService/Services/SpeedShopService",
+    "name": "SpeedShopService",
+    "source_len": 5130,
+    "disabled": 0,
+    "run_context": 0
+  },
+  {
+    "ref": 50099,
+    "class": "Script",
+    "path": "ServerScriptService/Services/StatsService",
+    "name": "StatsService",
+    "source_len": 9038,
+    "disabled": 0,
+    "run_context": 0
+  },
+  {
+    "ref": 50120,
+    "class": "Script",
+    "path": "ServerScriptService/TrailService",
+    "name": "TrailService",
+    "source_len": 6512,
+    "disabled": 0,
+    "run_context": 0
+  },
+  {
+    "ref": 50128,
+    "class": "Script",
+    "path": "ServerScriptService/TreadmillToolGuard",
+    "name": "TreadmillToolGuard",
+    "source_len": 981,
+    "disabled": 0,
+    "run_context": 0
+  },
+  {
+    "ref": 50117,
+    "class": "Script",
+    "path": "ServerScriptService/ZoneStreaming",
+    "name": "ZoneStreaming",
+    "source_len": 3100,
+    "disabled": 0,
+    "run_context": 0
+  },
+  {
+    "ref": 50582,
+    "class": "ModuleScript",
+    "path": "ServerStorage/Ragdoll",
+    "name": "Ragdoll",
+    "source_len": 3530,
+    "disabled": null,
+    "run_context": null
+  },
+  {
+    "ref": 51853,
+    "class": "ModuleScript",
+    "path": "ServerStorage/ZoneLoader",
+    "name": "ZoneLoader",
+    "source_len": 13057,
+    "disabled": null,
+    "run_context": null
+  },
+  {
+    "ref": 51852,
+    "class": "ModuleScript",
+    "path": "ServerStorage/ZoneTools",
+    "name": "ZoneTools",
+    "source_len": 4769,
+    "disabled": null,
+    "run_context": null
+  },
+  {
+    "ref": 50013,
+    "class": "LocalScript",
+    "path": "StarterPlayer/StarterPlayerScripts/ActivePetsClient",
+    "name": "ActivePetsClient",
+    "source_len": 12918,
+    "disabled": 0,
+    "run_context": 0
+  },
+  {
+    "ref": 50024,
+    "class": "LocalScript",
+    "path": "StarterPlayer/StarterPlayerScripts/AdminPortalClient",
+    "name": "AdminPortalClient",
+    "source_len": 1825,
+    "disabled": 0,
+    "run_context": 0
+  },
+  {
+    "ref": 50021,
+    "class": "LocalScript",
+    "path": "StarterPlayer/StarterPlayerScripts/AdminTreadmillClient",
+    "name": "AdminTreadmillClient",
+    "source_len": 1883,
+    "disabled": 0,
+    "run_context": 0
+  },
+  {
+    "ref": 50008,
+    "class": "LocalScript",
+    "path": "StarterPlayer/StarterPlayerScripts/AnimalClient",
+    "name": "AnimalClient",
+    "source_len": 10315,
+    "disabled": 0,
+    "run_context": 0
+  },
+  {
+    "ref": 50023,
+    "class": "LocalScript",
+    "path": "StarterPlayer/StarterPlayerScripts/BatTextureClient",
+    "name": "BatTextureClient",
+    "source_len": 4427,
+    "disabled": 0,
+    "run_context": 0
+  },
+  {
+    "ref": 50019,
+    "class": "LocalScript",
+    "path": "StarterPlayer/StarterPlayerScripts/BossClient",
+    "name": "BossClient",
+    "source_len": 11146,
+    "disabled": 0,
+    "run_context": 0
+  },
+  {
+    "ref": 50018,
+    "class": "LocalScript",
+    "path": "StarterPlayer/StarterPlayerScripts/BossHitOfferClient",
+    "name": "BossHitOfferClient",
+    "source_len": 8719,
+    "disabled": 0,
+    "run_context": 0
+  },
+  {
+    "ref": 50025,
+    "class": "LocalScript",
+    "path": "StarterPlayer/StarterPlayerScripts/CaptureEggClient",
+    "name": "CaptureEggClient",
+    "source_len": 8497,
+    "disabled": 0,
+    "run_context": 0
+  },
+  {
+    "ref": 50020,
+    "class": "LocalScript",
+    "path": "StarterPlayer/StarterPlayerScripts/CarryPoseClient",
+    "name": "CarryPoseClient",
+    "source_len": 4880,
+    "disabled": 0,
+    "run_context": 0
+  },
+  {
+    "ref": 49998,
+    "class": "LocalScript",
+    "path": "StarterPlayer/StarterPlayerScripts/Controllers/AdminController",
+    "name": "AdminController",
+    "source_len": 42249,
+    "disabled": 0,
+    "run_context": 0
+  },
+  {
+    "ref": 49999,
+    "class": "LocalScript",
+    "path": "StarterPlayer/StarterPlayerScripts/Controllers/GamepadController",
+    "name": "GamepadController",
+    "source_len": 5060,
+    "disabled": 0,
+    "run_context": 0
+  },
+  {
+    "ref": 49995,
+    "class": "LocalScript",
+    "path": "StarterPlayer/StarterPlayerScripts/Controllers/HudController",
+    "name": "HudController",
+    "source_len": 23588,
+    "disabled": 0,
+    "run_context": 0
+  },
+  {
+    "ref": 49996,
+    "class": "LocalScript",
+    "path": "StarterPlayer/StarterPlayerScripts/Controllers/PanelsController",
+    "name": "PanelsController",
+    "source_len": 13250,
+    "disabled": 0,
+    "run_context": 0
+  },
+  {
+    "ref": 49997,
+    "class": "LocalScript",
+    "path": "StarterPlayer/StarterPlayerScripts/Controllers/SettingsController",
+    "name": "SettingsController",
+    "source_len": 7736,
+    "disabled": 0,
+    "run_context": 0
+  },
+  {
+    "ref": 50001,
+    "class": "LocalScript",
+    "path": "StarterPlayer/StarterPlayerScripts/CosmicSpin",
+    "name": "CosmicSpin",
+    "source_len": 3366,
+    "disabled": 0,
+    "run_context": 0
+  },
+  {
+    "ref": 50016,
+    "class": "LocalScript",
+    "path": "StarterPlayer/StarterPlayerScripts/DayNightClient",
+    "name": "DayNightClient",
+    "source_len": 9240,
+    "disabled": 0,
+    "run_context": 0
+  },
+  {
+    "ref": 50000,
+    "class": "LocalScript",
+    "path": "StarterPlayer/StarterPlayerScripts/DecorCulling",
+    "name": "DecorCulling",
+    "source_len": 1537,
+    "disabled": 0,
+    "run_context": 0
+  },
+  {
+    "ref": 50004,
+    "class": "LocalScript",
+    "path": "StarterPlayer/StarterPlayerScripts/EggChrome",
+    "name": "EggChrome",
+    "source_len": 33264,
+    "disabled": 0,
+    "run_context": 0
+  },
+  {
+    "ref": 50003,
+    "class": "LocalScript",
+    "path": "StarterPlayer/StarterPlayerScripts/EggClient",
+    "name": "EggClient",
+    "source_len": 55983,
+    "disabled": 0,
+    "run_context": 0
+  },
+  {
+    "ref": 50017,
+    "class": "LocalScript",
+    "path": "StarterPlayer/StarterPlayerScripts/FuseMachineClient",
+    "name": "FuseMachineClient",
+    "source_len": 24827,
+    "disabled": 0,
+    "run_context": 0
+  },
+  {
+    "ref": 50012,
+    "class": "LocalScript",
+    "path": "StarterPlayer/StarterPlayerScripts/GrowingEggsClient",
+    "name": "GrowingEggsClient",
+    "source_len": 12496,
+    "disabled": 0,
+    "run_context": 0
+  },
+  {
+    "ref": 50022,
+    "class": "LocalScript",
+    "path": "StarterPlayer/StarterPlayerScripts/HoloGradient",
+    "name": "HoloGradient",
+    "source_len": 2060,
+    "disabled": 0,
+    "run_context": 0
+  },
+  {
+    "ref": 50010,
+    "class": "LocalScript",
+    "path": "StarterPlayer/StarterPlayerScripts/IndexClient",
+    "name": "IndexClient",
+    "source_len": 27107,
+    "disabled": 0,
+    "run_context": 0
+  },
+  {
+    "ref": 50006,
+    "class": "LocalScript",
+    "path": "StarterPlayer/StarterPlayerScripts/NestClient",
+    "name": "NestClient",
+    "source_len": 22287,
+    "disabled": 0,
+    "run_context": 0
+  },
+  {
+    "ref": 50002,
+    "class": "LocalScript",
+    "path": "StarterPlayer/StarterPlayerScripts/PetalFall",
+    "name": "PetalFall",
+    "source_len": 3052,
+    "disabled": 0,
+    "run_context": 0
+  },
+  {
+    "ref": 50005,
+    "class": "LocalScript",
+    "path": "StarterPlayer/StarterPlayerScripts/PlotClient",
+    "name": "PlotClient",
+    "source_len": 12010,
+    "disabled": 0,
+    "run_context": 0
+  },
+  {
+    "ref": 50027,
+    "class": "LocalScript",
+    "path": "StarterPlayer/StarterPlayerScripts/RebirthClient",
+    "name": "RebirthClient",
+    "source_len": 6403,
+    "disabled": 0,
+    "run_context": 0
+  },
+  {
+    "ref": 50007,
+    "class": "LocalScript",
+    "path": "StarterPlayer/StarterPlayerScripts/RewardChestClient",
+    "name": "RewardChestClient",
+    "source_len": 3513,
+    "disabled": 0,
+    "run_context": 0
+  },
+  {
+    "ref": 50015,
+    "class": "LocalScript",
+    "path": "StarterPlayer/StarterPlayerScripts/SellShopClient",
+    "name": "SellShopClient",
+    "source_len": 29309,
+    "disabled": 0,
+    "run_context": 0
+  },
+  {
+    "ref": 50009,
+    "class": "LocalScript",
+    "path": "StarterPlayer/StarterPlayerScripts/ShopClient",
+    "name": "ShopClient",
+    "source_len": 24728,
+    "disabled": 0,
+    "run_context": 0
+  },
+  {
+    "ref": 50014,
+    "class": "LocalScript",
+    "path": "StarterPlayer/StarterPlayerScripts/SignUpgradeClient",
+    "name": "SignUpgradeClient",
+    "source_len": 8845,
+    "disabled": 0,
+    "run_context": 0
+  },
+  {
+    "ref": 50011,
+    "class": "LocalScript",
+    "path": "StarterPlayer/StarterPlayerScripts/TrailShopClient",
+    "name": "TrailShopClient",
+    "source_len": 15580,
+    "disabled": 0,
+    "run_context": 0
+  },
+  {
+    "ref": 50026,
+    "class": "LocalScript",
+    "path": "StarterPlayer/StarterPlayerScripts/WindowSkinClient",
+    "name": "WindowSkinClient",
+    "source_len": 543,
+    "disabled": 0,
+    "run_context": 0
+  }
+]
