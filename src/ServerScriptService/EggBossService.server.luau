@@ -997,4 +997,1075 @@ local function stepBossCore(n, b, dt)
                 * CFrame.Angles(0, homeYaw(b), 0))
         end
         if k >= 1 then b.state = "chase" end
+        return    end
+
+    if b.state == "attack" then
+        b.atkT = b.atkT + dt
+        if not b.struck then
+            local target = b.atkTarget
+            local root, hum
+            if target and target.Parent then root, hum = rootOf(target) end
+            local model = target and carriers[target]
+            local e = model and eggs[model]
+            if not (root and e) or inSafeZone(root.Position.Z) then
+                b.state, b.atkTarget = "chase", nil
+                return
+            end
+            local goal = Vector3.new(root.Position.X, b.awakeY, root.Position.Z)
+            local reach = Cfg.BOSS.catchRadius + b.H * 0.35
+            local dist = (goal - pos).Magnitude
+            if dist > reach * 0.8 then
+                moveBoss(b, goal, Cfg.bossSpeedFor(speedOf(target), e.zone, e.size), dt, true)
+            end
+            if b.atkT >= strikeTime(b) then
+                if dist <= reach * 1.3 + 2 then
+                    b.struck = true
+                    bossStrike(n, b, target, root, hum, model, e)
+                else
+                    b.state, b.atkTarget = "chase", nil
+                end
+            end
+            return
+        end
+        if b.atkT >= ATTACK_TIME then
+            b.state = b.afterAttack or "returning"
+            b.afterAttack, b.atkTarget = nil, nil
+        end
         return
+    end
+
+    local target = pickTarget(b)
+
+    if target and b.state == "sleep" then
+        wakeUp(b)
+        return
+    end
+
+    if target then
+        b.state = "chase"
+        local root, hum = rootOf(target)
+        if root then
+            local goal = Vector3.new(root.Position.X, b.awakeY, root.Position.Z)
+            local dist = (goal - pos).Magnitude
+            local reach = Cfg.BOSS.catchRadius + b.H * 0.35
+            local toward = Vector3.new(goal.X - pos.X, 0, goal.Z - pos.Z)
+            local runAway = toward.Magnitude > 0.1
+                and root.AssemblyLinearVelocity:Dot(toward.Unit) or 0
+            local cc = carriers[target]
+            local ee = cc and eggs[cc]
+            local bossPace = ee and Cfg.bossSpeedFor(speedOf(target), ee.zone, ee.size) or 0
+            local lead = math.clamp((bossPace - runAway) * strikeTime(b), 0, reach)
+            if dist <= reach + lead then
+                if ee then
+                    b.state = "attack"
+                    b.atkT = 0
+                    b.struck = false
+                    b.atkTarget = target
+                end
+                return
+            end
+
+            local carried = carriers[target]
+            local ce = carried and eggs[carried]
+            local pace = ce
+                and Cfg.bossSpeedFor(speedOf(target), ce.zone, ce.size)
+                or Cfg.walkForSpeed(speedOf(target)) * 0.9
+            local sp = (dist > Cfg.BOSS.closeRange)
+                and (pace * Cfg.BOSS.closeSpeed) or pace
+            moveBoss(b, goal, sp, dt, true)
+            return
+        end
+    end
+
+    if b.state ~= "sleep" then
+        local loose = findLoose(b)
+        if loose then
+            b.state = "fetch"
+            local goal = loose:GetPivot().Position + Vector3.new(0, b.awakeY, 0)
+            local d = moveBoss(b, goal, Cfg.BOSS.fetchSpeed, dt, true)
+            if d <= Cfg.BOSS.grabRadius + b.H * 0.5 then
+                detachPrompt(loose)
+                eggs[loose].state = "boss"
+                b.hold = loose
+                game:GetService("CollectionService"):AddTag(loose, "BossHeldEgg")
+                loose:SetAttribute("HeldBy", n)
+                loose:SetAttribute("HeldYaw", eggs[loose].yaw or 0)
+                b.state = "carryback"
+            end
+            return
+        end
+    end
+
+    local homeAwake = Vector3.new(b.homeXZ.X, b.awakeY, b.homeXZ.Y)
+    local flat = (Vector3.new(pos.X, 0, pos.Z) - Vector3.new(b.homeXZ.X, 0, b.homeXZ.Y)).Magnitude
+    if flat > 2.5 then
+        b.state = "returning"
+        local back = math.clamp(flat * 0.7, Cfg.BOSS.returnSpeed, 420)
+        moveBoss(b, homeAwake, back, dt, false)
+        return
+    end
+
+    if b.state ~= "sleep" then
+
+        local y = pos.Y - (b.awakeY - b.sleepY) * dt * 1.6
+        if y <= b.sleepY + 0.05 then
+            y = b.sleepY
+            sleepDown(b)
+        end
+        setBossCF(b, CFrame.new(b.homeXZ.X, y, b.homeXZ.Y)
+            * CFrame.Angles(0, homeYaw(b), 0))
+        return
+    end
+
+    b.phase = b.phase + dt
+    setBossCF(b, CFrame.new(b.homeXZ.X,
+        b.sleepY,
+        b.homeXZ.Y) * CFrame.Angles(0, homeYaw(b) + math.sin(b.phase * 0.22) * 0.10, 0))
+end
+
+local SLEEP_STEP = 0.1
+local PUBLISH_EVERY = 1 / 30
+
+local function publishBoss(b, force)
+    local now = workspace:GetServerTimeNow()
+    if not force and b.lastPub and now - b.lastPub < PUBLISH_EVERY then return end
+    local pos = b.cf.Position
+    local vel = Vector3.zero
+    local gap = b.lastPub and (now - b.lastPub) or 0
+    if b.state ~= "sleep" and not (b.state == "attack" and b.struck) then
+        if b.pubPos and gap > 0.01 then
+            local raw = (pos - b.pubPos) / gap
+            vel = (b.pubVel or raw):Lerp(raw, 0.5)
+        else
+            vel = b.pubVel or Vector3.zero
+        end
+    end
+    b.pubVel = vel
+    b.model:SetAttribute("BossCF", b.cf)
+    b.model:SetAttribute("BossVel", vel)
+    b.model:SetAttribute("BossStamp", now)
+    b.pubPos, b.lastPub = pos, now
+end
+
+local function stepBoss(n, b, dt)
+    if b.state == "sleep" and next(carriers) == nil and b.pubState == "sleep" then
+        b.idleAcc = (b.idleAcc or 0) + dt
+        if b.idleAcc < SLEEP_STEP then return end
+        dt, b.idleAcc = b.idleAcc, 0
+    end
+    stepBossCore(n, b, dt)
+    if b.pubState ~= b.state then
+        b.pubState = b.state
+        b.model:SetAttribute("BossState", b.state)
+        b.model:SetAttribute("BossStateAt", workspace:GetServerTimeNow())
+        publishBoss(b, true)
+    elseif b.state ~= "sleep" then
+        publishBoss(b, false)
+    end
+end
+
+local function stepEggs(dt)
+    local t = os.clock()
+    for model, e in pairs(eggs) do
+        if not model.Parent then
+            eggs[model] = nil
+        elseif not model.PrimaryPart then
+            local plr = e.carrier
+            if plr and carriers[plr] == model then
+                carriers[plr] = nil
+                pcall(setCarrying, plr, false)
+                setSpeed(plr, 1)
+            end
+            eggs[model] = nil
+            model:Destroy()
+        elseif e.state == "player" then
+            local plr = e.carrier
+            local root = plr and rootOf(plr)
+            if not root then
+
+                makeLoose(model, model:GetPivot().Position)
+            else
+
+                if model.PrimaryPart and not model.PrimaryPart:FindFirstChild("HandWeld") then
+                    attachToHands(model, plr, e)
+                end
+                if inSafeZone(root.Position.Z) then
+                    local dist = Cfg.SAFE_Z - (e.pickPos and e.pickPos.Z or Cfg.SAFE_Z)
+                    local reach = (Cfg.WALK_BASE + Cfg.WALK_RANGE) * 1.5 * (os.clock() - (e.pickT or 0)) + 60
+                    if dist > reach and e.pickPos then
+                        makeLoose(model, e.pickPos)
+                        Remote:FireClient(plr, "Drop", "hit")
+                    else
+                        bankEgg(plr)
+                    end
+                end
+            end
+        end
+
+    end
+end
+
+local nestFolder = map:FindFirstChild("EggNests")
+if nestFolder then nestFolder:Destroy() end
+nestFolder = Instance.new("Folder"); nestFolder.Name = "EggNests"; nestFolder.Parent = map
+
+local nestTemplate = assets:FindFirstChild("Nest")
+
+for _, zf in ipairs(spawnsRoot:GetChildren()) do
+    for _, anchor in ipairs(zf:GetChildren()) do
+        if anchor:IsA("BasePart") then
+            for _, c in ipairs(anchor:GetChildren()) do c:Destroy() end
+            if nestTemplate then
+                local nest = nestTemplate:Clone()
+                nest.Name = string.format("Nest_Z%d_%d",
+                    anchor:GetAttribute("Zone"), anchor:GetAttribute("Slot"))
+                nest.Parent = nestFolder
+                local yaw = rng:NextNumber(0, math.pi * 2)
+                nest:SetAttribute("Yaw", yaw)
+                nest:SetAttribute("BaseScale", nest:GetScale())
+                standAt(nest, anchor.Position.X, 0, anchor.Position.Z, yaw)
+            end
+            makeEgg(anchor)
+        end
+    end
+end
+spawnBosses()
+for n, b in pairs(bosses) do b.zoneIndex = n end
+
+Remote.OnServerEvent:Connect(function(plr, action)
+    if action ~= "Drop" then return end
+    local model = carriers[plr]
+    if not model then return end
+    local root = rootOf(plr)
+    makeLoose(model, root and root.Position or model:GetPivot().Position)
+    Remote:FireClient(plr, "Drop", "manual")
+end)
+
+Players.PlayerRemoving:Connect(function(plr)
+    local model = carriers[plr]
+    if model then makeLoose(model, model:GetPivot().Position) end
+end)
+
+local function refreshSpeed(plr)
+    local model = carriers[plr]
+    local e = model and eggs[model]
+    setSpeed(plr, e and Cfg.SIZES[e.size].carry or 1)
+end
+
+local function hookSpeed(plr)
+    plr:GetAttributeChangedSignal("Speed"):Connect(function() refreshSpeed(plr) end)
+    plr:GetAttributeChangedSignal("SlowMode"):Connect(function() refreshSpeed(plr) end)
+    plr:GetAttributeChangedSignal("HoldingCaptureEgg"):Connect(function() refreshSpeed(plr) end)
+    plr:GetAttributeChangedSignal("SpeedMult"):Connect(function() refreshSpeed(plr) end)
+    if plr:GetAttribute("SlowMode") == nil then plr:SetAttribute("SlowMode", false) end
+end
+for _, plr in ipairs(Players:GetPlayers()) do hookSpeed(plr) end
+Players.PlayerAdded:Connect(hookSpeed)
+
+Remote.OnServerEvent:Connect(function(plr, action, value)
+    if action ~= "SlowMode" then return end
+    plr:SetAttribute("SlowMode", value == true)
+    refreshSpeed(plr)
+end)
+
+local BAG_LIMIT = 500
+local bagCalls = {}
+Players.PlayerRemoving:Connect(function(plr) bagCalls[plr] = nil end)
+Remote.OnServerEvent:Connect(function(plr, action, data)
+    if action ~= "BagState" and action ~= "BagSet" then return end
+    local now = os.clock()
+    local c = bagCalls[plr]
+    if not c or now - c.at >= 1 then
+        c = { at = now, n = 0 }
+        bagCalls[plr] = c
+    end
+    c.n += 1
+    if c.n > 20 then return end
+    local profile = _G.Profile and _G.Profile.get(plr)
+    if not profile then return end
+    local bag = type(profile.BagState) == "table" and profile.BagState or {}
+    bag.pets = type(bag.pets) == "table" and bag.pets or {}
+    bag.eggs = type(bag.eggs) == "table" and bag.eggs or {}
+    profile.BagState = bag
+    if action == "BagSet" then
+        if type(data) ~= "table" then return end
+        if type(data.key) == "string" and #data.key > 0 and #data.key <= 64 then
+            if data.on == true then
+                local count = 0
+                for _ in pairs(bag.pets) do count += 1 end
+                if count < BAG_LIMIT then bag.pets[data.key] = true end
+            else
+                bag.pets[data.key] = nil
+            end
+        elseif type(data.sig) == "string" and #data.sig <= 12 and data.sig:match("^z%d+_t%d+_s%d+$") then
+            local n = math.clamp(math.floor(tonumber(data.count) or 0), 0, BAG_LIMIT)
+            if n > 0 and bag.eggs[data.sig] == nil then
+                local kinds = 0
+                for _ in pairs(bag.eggs) do kinds += 1 end
+                if kinds >= 288 then return end
+            end
+            bag.eggs[data.sig] = (n > 0) and n or nil
+        end
+        return
+    end
+    Remote:FireClient(plr, "BagState", bag)
+end)
+
+Players.PlayerAdded:Connect(function(plr)
+    plr.CharacterAdded:Connect(function(ch)
+        local hum = ch:WaitForChild("Humanoid", 5)
+        if hum then hum.WalkSpeed = Cfg.walkForSpeed(speedOf(plr)) end
+        local model = carriers[plr]
+        if model then makeLoose(model, model:GetPivot().Position) end
+    end)
+end)
+
+local TOOL_HEIGHT = 2.2
+
+local function buildEggTool(zone, tier, size, species, luck)
+    local speciesTpl = AnimalEggs.template(species)
+    local tpl = speciesTpl or eggTemplate(zone)
+    if not tpl then return nil end
+
+    local m = tpl:Clone()
+    local _, box = m:GetBoundingBox()
+    if box.Y > 0.001 then m:ScaleTo(m:GetScale() * (TOOL_HEIGHT / box.Y)) end
+
+    local colour = Cfg.eggColor(zone, tier)
+    local accent = Color3.new(colour.R * 0.68, colour.G * 0.68, colour.B * 0.68)
+    local glow = Cfg.GLOW[tier] or Cfg.GLOW[1]
+
+    local parts, shell = {}, nil
+    for _, p in ipairs(m:GetDescendants()) do
+        if p:IsA("BasePart") then
+            table.insert(parts, p)
+            if not shell and p.Name:lower():match("^shell") then shell = p end
+        end
+    end
+    if not shell then m:Destroy() return nil end
+
+    local tool = Instance.new("Tool")
+
+    tool.Name = string.format("%s %s %s Egg",
+        species or Cfg.NAMES[zone] or ("Zone" .. zone),
+        Cfg.TIERS[tier].name, Cfg.SIZES[size].name)
+    tool.RequiresHandle = true
+    tool.CanBeDropped = false
+    tool:SetAttribute("EggZone", zone)
+    tool:SetAttribute("EggTier", tier)
+    tool:SetAttribute("EggSize", size)
+    if species then tool:SetAttribute("EggSpecies", species) end
+    if luck then tool:SetAttribute("EggLuck", luck) end
+
+    for _, p in ipairs(parts) do
+        local isShell = (p == shell)
+        if not speciesTpl then
+            p.Color = isShell and colour or (glow.deco and colour or accent)
+            p.Material = ((isShell and glow.shell) or (not isShell and glow.deco))
+                and Enum.Material.Neon or Enum.Material.SmoothPlastic
+        end
+        p.Anchored = false
+        p.CanCollide = false
+        p.CanQuery = false
+        p.CanTouch = false
+        p.Massless = true
+        p.CastShadow = false
+    end
+
+    shell.Name = "Handle"
+
+    shell:SetAttribute("RestOffset", CFrame.new())
+    shell.Parent = tool
+    for _, p in ipairs(parts) do
+        if p ~= shell then
+            p:SetAttribute("RestOffset", shell.CFrame:ToObjectSpace(p.CFrame))
+            p.Parent = tool
+            local w = Instance.new("WeldConstraint")
+            w.Name = "EggWeld"; w.Part0 = shell; w.Part1 = p; w.Parent = shell
+        end
+    end
+    m:Destroy()
+    return tool
+end
+
+local function eggsOf(plr)
+    local profile = _G.Profile and _G.Profile.get(plr)
+    return profile and profile.Eggs or nil
+end
+
+local function rebuildBackpack(plr)
+    local inv = eggsOf(plr)
+    if not inv then return end
+    local bag = plr:FindFirstChildOfClass("Backpack")
+    if not bag then return end
+
+    for _, t in ipairs(bag:GetChildren()) do
+        if t:IsA("Tool") and t:GetAttribute("EggZone") then t:Destroy() end
+    end
+    local ch = plr.Character
+    if ch then
+        for _, t in ipairs(ch:GetChildren()) do
+            if t:IsA("Tool") and t:GetAttribute("EggZone") then t:Destroy() end
+        end
+    end
+
+    if inv[1] == nil and next(inv) ~= nil then
+        local list = {}
+        for key, count in pairs(inv) do
+            local z, ti, sz = tostring(key):match("^z(%d+)_t(%d+)_s(%d+)$")
+            if z then
+                for _ = 1, math.min(tonumber(count) or 0, 200) do
+                    table.insert(list, { z = tonumber(z), t = tonumber(ti), s = tonumber(sz) })
+                end
+            end
+        end
+        local profile = _G.Profile and _G.Profile.get(plr)
+        if profile then profile.Eggs = list end
+        inv = list
+    end
+
+    for _, entry in ipairs(inv) do
+        if entry.sp == nil then entry.sp = AnimalEggs.legacy(entry.z, entry.t, entry.s) end
+        local tool = buildEggTool(entry.z, entry.t, entry.s, entry.sp, entry.lk)
+        if tool then tool.Parent = bag end
+    end
+end
+
+local function giveEggTool(plr, zone, tier, size, species, luck)
+    local bag = plr:FindFirstChildOfClass("Backpack")
+    if not bag then return end
+    local tool = buildEggTool(zone, tier, size, species, luck)
+    if tool then tool.Parent = bag end
+    return tool
+end
+_G.EggGiveTool = giveEggTool
+
+_G.EggGrant = function(plr, zone, tier, size, species, luck)
+    local profile = _G.Profile and _G.Profile.get(plr)
+    if not profile then return nil end
+    species = species or AnimalEggs.pick(zone, tier)
+    profile.Eggs = profile.Eggs or {}
+    table.insert(profile.Eggs, { z = zone, t = tier, s = size, sp = species, lk = luck })
+    return giveEggTool(plr, zone, tier, size, species, luck)
+end
+
+_G.EggAdmin = {
+    give = function(plr, zone, tier, size) return _G.EggGrant(plr, zone, tier, size) end,
+
+    spawn = function(zone, tier, size, howMany)
+        local made = 0
+        local want = howMany or 1
+        for _, zf in ipairs(spawnsRoot:GetChildren()) do
+            for _, anchor in ipairs(zf:GetChildren()) do
+                if anchor:IsA("BasePart") and (not zone or anchor:GetAttribute("Zone") == zone) then
+                    if made < want then
+                        for _, m in ipairs(anchor:GetChildren()) do
+                            if eggs[m] then eggs[m] = nil end
+                            m:Destroy()
+                        end
+                        if makeEgg(anchor, tier, size) then made += 1 end
+                    end
+                end
+            end
+        end
+        return made
+    end,
+
+    drop = function(plr)
+        local model = carriers[plr]
+        if not model then return false end
+        local root = rootOf(plr)
+        makeLoose(model, root and root.Position or model:GetPivot().Position)
+        Remote:FireClient(plr, "Drop", "manual")
+        return true
+    end,
+
+    resetAll = function()
+        for model, e in pairs(eggs) do
+            if e.state == "anchor" or e.state == "loose" then
+                eggs[model] = nil
+                if model.Parent then model:Destroy() end
+            end
+        end
+        local made = {}
+        for _, zf in ipairs(spawnsRoot:GetChildren()) do
+            for _, anchor in ipairs(zf:GetChildren()) do
+                if anchor:IsA("BasePart") then
+                    for _, m in ipairs(anchor:GetChildren()) do
+                        if eggs[m] then eggs[m] = nil end
+                        m:Destroy()
+                    end
+                    makeEgg(anchor)
+                    for _, m in ipairs(anchor:GetChildren()) do
+                        local e = eggs[m]
+                        if e then
+                            table.insert(made, { zone = e.zone, tier = e.tier, size = e.size })
+                        end
+                    end
+                end
+            end
+        end
+        return made
+    end,
+}
+
+local function hookEggBackpack(plr)
+    task.spawn(function()
+        for _ = 1, 300 do
+            if not plr.Parent then return end
+            if _G.Profile and _G.Profile.get(plr) and plr:FindFirstChildOfClass("Backpack") then break end
+            task.wait(0.2)
+        end
+        if plr.Parent then rebuildBackpack(plr) end
+    end)
+    plr.CharacterAdded:Connect(function()
+        task.delay(1, function() if plr.Parent then rebuildBackpack(plr) end end)
+    end)
+end
+Players.PlayerAdded:Connect(hookEggBackpack)
+for _, plr in ipairs(Players:GetPlayers()) do hookEggBackpack(plr) end
+
+local GEAR = Cfg.GEAR
+
+local STICK_TILT = CFrame.Angles(math.rad(-18), 0, math.rad(6))
+local STICK_GRIP = CFrame.new(0, -1.45, 0) * STICK_TILT
+
+local function gripFor(tool)
+    local handle = tool:FindFirstChild("Handle")
+    local tape = tool:FindFirstChild("grip_tape_wrap", true)
+    if handle and tape then
+        return CFrame.new(0, tape.Position.Y - handle.Position.Y, 0) * STICK_TILT
+    end
+    return STICK_GRIP
+end
+local trapsFolder = workspace:FindFirstChild("BearTraps")
+if trapsFolder then trapsFolder:Destroy() end
+trapsFolder = Instance.new("Folder")
+trapsFolder.Name = "BearTraps"
+trapsFolder.Parent = workspace
+
+local stunToken, stunUntil = {}, {}
+local gearReady = {}
+local traps = {}
+
+local function isStunned(plr)
+    return (stunUntil[plr] or 0) > os.clock()
+end
+
+local function dropCarried(plr)
+    local model = carriers[plr]
+    if not model then return end
+    local root = rootOf(plr)
+    makeLoose(model, root and root.Position or model:GetPivot().Position)
+    Remote:FireClient(plr, "Drop", "hit")
+end
+
+local function freeze(plr, seconds)
+    local ch = plr.Character
+    local hum = ch and ch:FindFirstChildOfClass("Humanoid")
+    if not hum then return end
+
+    stunUntil[plr] = math.max(stunUntil[plr] or 0, os.clock() + seconds)
+    stunToken[plr] = (stunToken[plr] or 0) + 1
+    local mine = stunToken[plr]
+
+    plr:SetAttribute("Stunned", true)
+
+    plr:SetAttribute("StunEnds", workspace:GetServerTimeNow() + seconds)
+    hum:UnequipTools()
+    hum.WalkSpeed = 0
+    hum.JumpPower = 0
+    hum.JumpHeight = 0
+
+    task.delay(seconds, function()
+        if stunToken[plr] ~= mine then return end
+        if not plr.Parent then return end
+        plr:SetAttribute("Stunned", false)
+        plr:SetAttribute("StunEnds", 0)
+        local ch2 = plr.Character
+        local h2 = ch2 and ch2:FindFirstChildOfClass("Humanoid")
+        if h2 then
+            local SP = game:GetService("StarterPlayer")
+            h2.JumpPower = SP.CharacterJumpPower
+            h2.JumpHeight = SP.CharacterJumpHeight
+        end
+        refreshSpeed(plr)
+    end)
+end
+
+local function readyIn(plr, key, cd)
+    gearReady[plr] = gearReady[plr] or {}
+    local at = gearReady[plr][key] or 0
+    if os.clock() < at then return false end
+    gearReady[plr][key] = os.clock() + cd
+    return true
+end
+
+local function gearTemplate(name)
+    local set = assets:FindFirstChild("Gear")
+    return set and set:FindFirstChild(name) or nil
+end
+
+local function buildStick()
+    local tpl = gearTemplate("Stick")
+    local tool
+    if tpl then
+        tool = tpl:Clone()
+    else
+
+        tool = Instance.new("Tool")
+        local h = Instance.new("Part")
+        h.Name = "Handle"
+        h.Size = Vector3.new(0.32, 3.4, 0.32)
+        h.Color = Color3.fromRGB(146, 96, 52)
+        h.Material = Enum.Material.Wood
+        h.TopSurface, h.BottomSurface = Enum.SurfaceType.Smooth, Enum.SurfaceType.Smooth
+        h.Parent = tool
+    end
+    tool.Name = "Stick"
+    tool.RequiresHandle = true
+    tool.CanBeDropped = false
+    tool:SetAttribute("Gear", "Stick")
+    for _, p in ipairs(tool:GetDescendants()) do
+        if p:IsA("BasePart") then
+            p.CanCollide = false
+            p.Massless = true
+            p.CanQuery = false
+        end
+    end
+    tool.Grip = gripFor(tool)
+    return tool
+end
+
+local SWING_ANIM_ID = "rbxassetid://522635514"
+local SWING_TIME = 0.46
+local SWING_SPEED = 1.1
+local swinging = {}
+local swingTracks = {}
+
+local function swingTrackFor(plr)
+    local ch = plr.Character
+    local hum = ch and ch:FindFirstChildOfClass("Humanoid")
+    local animator = hum and hum:FindFirstChildOfClass("Animator")
+    if not animator then return nil end
+
+    local cached = swingTracks[plr]
+
+    if cached and cached.animator == animator then return cached.track end
+
+    local anim = Instance.new("Animation")
+    anim.AnimationId = SWING_ANIM_ID
+    local ok, track = pcall(function() return animator:LoadAnimation(anim) end)
+    if not ok or not track then return nil end
+    track.Priority = Enum.AnimationPriority.Action
+    swingTracks[plr] = { animator = animator, track = track }
+    return track
+end
+
+local function swingGripOnly(plr)
+    if swinging[plr] then return end
+    local ch = plr.Character
+    local tool = ch and ch:FindFirstChild("Stick")
+    if not (tool and tool:IsA("Tool")) then return end
+
+    swinging[plr] = true
+    task.spawn(function()
+        local t0 = os.clock()
+        while true do
+            local k = (os.clock() - t0) / SWING_TIME
+            if k >= 1 then break end
+            if not (tool.Parent and tool.Parent == plr.Character) then break end
+
+            local pitch, yaw, roll, out, up
+            if k < 0.30 then
+
+                local u = k / 0.30
+                local e = u * u
+                pitch = math.rad(-105) * e
+                yaw   = math.rad(-40) * e
+                roll  = math.rad(18) * e
+                out   = -0.35 * e
+                up    =  0.30 * e
+            elseif k < 0.62 then
+
+                local u = (k - 0.30) / 0.32
+                local e = 1 - (1 - u) ^ 3
+                pitch = math.rad(-105) + math.rad(190) * e
+                yaw   = math.rad(-40)  + math.rad(75)  * e
+                roll  = math.rad(18)   - math.rad(40)  * e
+                out   = -0.35 + 1.25 * e
+                up    =  0.30 - 0.75 * e
+            else
+
+                local u = (k - 0.62) / 0.38
+                local e = u * u * (3 - 2 * u)
+                pitch = math.rad(85) * (1 - e)
+                yaw   = math.rad(35) * (1 - e)
+                roll  = math.rad(-22) * (1 - e)
+                out   = 0.90 * (1 - e)
+                up    = -0.45 * (1 - e)
+            end
+
+            tool.Grip = gripFor(tool)
+                * CFrame.new(0, up, out)
+                * CFrame.Angles(pitch, yaw, roll)
+            task.wait()
+        end
+        if tool.Parent then tool.Grip = gripFor(tool) end
+        swinging[plr] = nil
+    end)
+end
+
+local function swingAnim(plr)
+    local ch = plr.Character
+    local tool = ch and ch:FindFirstChild("Stick")
+    if not (tool and tool:IsA("Tool")) then return end
+
+    tool.Grip = gripFor(tool)
+
+    local track = swingTrackFor(plr)
+    if not track then
+        swingGripOnly(plr)
+        return
+    end
+    if track.IsPlaying then track:Stop(0) end
+    track:Play(0.05, 1, SWING_SPEED)
+end
+
+Players.PlayerRemoving:Connect(function(plr)
+    swingTracks[plr] = nil
+end)
+
+local function swing(plr)
+    if isStunned(plr) then return end
+    if carriers[plr] then
+        Remote:FireClient(plr, "Gear", { kind = "Stick", ok = false, why = "carry" })
+        return
+    end
+    local root = rootOf(plr)
+    if not root then return end
+    if inSafeZone(root.Position.Z) then
+        Remote:FireClient(plr, "Gear", { kind = "Stick", ok = false, why = "safe" })
+        return
+    end
+    if not readyIn(plr, "stick", GEAR.stickCd) then return end
+
+    local look = root.CFrame.LookVector
+    local best, bestDist
+    for _, other in ipairs(Players:GetPlayers()) do
+        if other ~= plr then
+            local oroot = rootOf(other)
+            if oroot and not inSafeZone(oroot.Position.Z) and not isStunned(other) then
+                local delta = oroot.Position - root.Position
+                local dist = delta.Magnitude
+                if dist <= GEAR.stickRange and dist > 0.01 then
+                    if look:Dot(delta.Unit) >= GEAR.stickArc then
+                        if not bestDist or dist < bestDist then best, bestDist = other, dist end
+                    end
+                end
+            end
+        end
+    end
+
+    Remote:FireClient(plr, "Gear", { kind = "Stick", ok = true, hit = best ~= nil })
+    swingAnim(plr)
+    if not best then return end
+
+    local oroot = rootOf(best)
+    local away = (oroot.Position - root.Position)
+    away = (away.Magnitude > 0.1) and away.Unit or look
+    local batMult = require(game.ServerScriptService.BatService).knockback(plr)
+    local push = (away * GEAR.stickBack + Vector3.new(0, GEAR.stickUp, 0)) * batMult
+
+    dropCarried(best)
+    if _G.CaptureEgg then pcall(_G.CaptureEgg.onHit, best, plr) end
+    pcall(function() oroot:SetNetworkOwner(nil) end)
+    local hum = best.Character and best.Character:FindFirstChildOfClass("Humanoid")
+    if hum then hum.PlatformStand = true end
+    oroot.AssemblyLinearVelocity = push
+    task.delay(0.06, function()
+        if oroot.Parent then oroot.AssemblyLinearVelocity = push end
+    end)
+    freeze(best, GEAR.stickStun)
+    task.delay(GEAR.stickStun, function()
+        local h = best.Character and best.Character:FindFirstChildOfClass("Humanoid")
+        if h and not best.Character:GetAttribute("Ragdoll") then h.PlatformStand = false end
+        pcall(function()
+            if oroot.Parent and best.Parent then oroot:SetNetworkOwner(best) end
+        end)
+    end)
+    Remote:FireClient(best, "Gear", { kind = "Hit", by = plr.Name })
+end
+
+local function buildTrapModel()
+    local tpl = gearTemplate("Trap")
+    if tpl then return tpl:Clone() end
+
+    local m = Instance.new("Model")
+    m.Name = "BearTrap"
+    local base = Instance.new("Part")
+    base.Name = "Plate"
+    base.Shape = Enum.PartType.Cylinder
+    base.Size = Vector3.new(0.35, 4.4, 4.4)
+    base.CFrame = CFrame.Angles(0, 0, math.pi / 2)
+    base.Color = Color3.fromRGB(74, 78, 84)
+    base.Material = Enum.Material.Metal
+    base.Anchored = true
+    base.CanCollide = false
+    base.Parent = m
+    m.PrimaryPart = base
+    for k = 1, 10 do
+        local a = (k / 10) * math.pi * 2
+        local tooth = Instance.new("WedgePart")
+        tooth.Name = "Tooth" .. k
+        tooth.Size = Vector3.new(0.28, 1.1, 0.7)
+        tooth.Color = Color3.fromRGB(196, 200, 206)
+        tooth.Material = Enum.Material.Metal
+        tooth.Anchored = true
+        tooth.CanCollide = false
+        tooth.CFrame = base.CFrame
+            * CFrame.new(0, math.cos(a) * 1.9, math.sin(a) * 1.9)
+            * CFrame.Angles(0, 0, -a)
+            * CFrame.new(0, 0.5, 0)
+        tooth.Parent = m
+    end
+    return m
+end
+
+local function trapToolOf(plr)
+    for _, where in ipairs({ plr:FindFirstChildOfClass("Backpack"), plr.Character }) do
+        for _, t in ipairs(where and where:GetChildren() or {}) do
+            if t:IsA("Tool") and t:GetAttribute("Gear") == "Trap" then return t end
+        end
+    end
+    return nil
+end
+
+local function syncTrapCount(plr)
+    if not (plr and plr.Parent) then return end
+    local tool = trapToolOf(plr)
+    if not tool then return end
+    local used = 0
+    for _, t in ipairs(traps) do if t.owner == plr then used = used + 1 end end
+    local left = math.max(0, GEAR.maxTraps - used)
+    if tool:GetAttribute("Count") ~= left then tool:SetAttribute("Count", left) end
+end
+
+local function placeTrap(plr)
+    if isStunned(plr) then return end
+    local root = rootOf(plr)
+    if not root then return end
+    if inSafeZone(root.Position.Z) then
+        Remote:FireClient(plr, "Gear", { kind = "Trap", ok = false, why = "safe" })
+        return
+    end
+
+    local mine = 0
+    for _, t in ipairs(traps) do if t.owner == plr then mine = mine + 1 end end
+    if mine >= GEAR.maxTraps then
+        Remote:FireClient(plr, "Gear", { kind = "Trap", ok = false, why = "limit" })
+        return
+    end
+    if not readyIn(plr, "trap", GEAR.trapCd) then return end
+
+    local m = buildTrapModel()
+    m:ScaleTo(m:GetScale() * 0.65)
+    for _, p in ipairs(m:GetDescendants()) do
+        if p:IsA("BasePart") then
+            p.Anchored = true
+            p.CanCollide = false
+            p.CanQuery = false
+        end
+    end
+
+    local ahead = root.CFrame.LookVector
+    local flat = Vector3.new(ahead.X, 0, ahead.Z)
+    flat = (flat.Magnitude > 0.01) and flat.Unit or Vector3.new(0, 0, -1)
+    local spot = root.Position + flat * GEAR.trapAhead
+    spot = Vector3.new(
+        math.clamp(spot.X, Cfg.X_MIN + 4, Cfg.X_MAX - 4),
+        0,
+        spot.Z)
+
+    standAt(m, spot.X, 0.05, spot.Z, math.atan2(flat.X, flat.Z))
+    m.Parent = trapsFolder
+
+    local rec = {
+        model = m, owner = plr,
+        pos = Vector3.new(spot.X, 0, spot.Z),
+        armedAt = os.clock() + GEAR.trapArm,
+
+        ownerSafeUntil = os.clock() + GEAR.trapOwnerGrace,
+        diesAt = os.clock() + GEAR.trapLife,
+    }
+    table.insert(traps, rec)
+    syncTrapCount(plr)
+    Remote:FireClient(plr, "Gear", { kind = "Trap", ok = true })
+end
+
+local function stepTraps()
+    local now = os.clock()
+    for index = #traps, 1, -1 do
+        local t = traps[index]
+        if not t.model.Parent or now >= t.diesAt then
+            t.model:Destroy()
+            table.remove(traps, index)
+            syncTrapCount(t.owner)
+        elseif now >= t.armedAt then
+            for _, plr in ipairs(Players:GetPlayers()) do
+                local root = rootOf(plr)
+                local ownerSafe = (plr == t.owner) and (os.clock() < (t.ownerSafeUntil or 0))
+                if root and not ownerSafe and not isStunned(plr)
+                   and not inSafeZone(root.Position.Z) then
+                    local flat = Vector3.new(root.Position.X, 0, root.Position.Z)
+                    if (flat - t.pos).Magnitude <= GEAR.trapRadius then
+                        dropCarried(plr)
+                        if _G.CaptureEgg then pcall(_G.CaptureEgg.onHit, plr) end
+                        freeze(plr, GEAR.trapStun)
+                        Remote:FireClient(plr, "Gear",
+                            { kind = "Trapped", seconds = GEAR.trapStun })
+                        t.model:Destroy()
+                        table.remove(traps, index)
+                        syncTrapCount(t.owner)
+                        break
+                    end
+                end
+            end
+        end
+    end
+end
+
+local TRAP_HELD_SIZE = 1.7
+
+local function buildTrapTool()
+    local tool = Instance.new("Tool")
+    tool.Name = "Bear Trap"
+    tool.RequiresHandle = true
+    tool.CanBeDropped = false
+    tool:SetAttribute("Gear", "Trap")
+
+    local tpl = gearTemplate("TrapHeld") or gearTemplate("Trap")
+    if tpl then
+        local m = tpl:Clone()
+        local _, box = m:GetBoundingBox()
+        local widest = math.max(box.X, box.Z)
+        if widest > 0.01 then m:ScaleTo(m:GetScale() * (TRAP_HELD_SIZE / widest)) end
+
+        local parts, handle = {}, nil
+        for _, d in ipairs(m:GetDescendants()) do
+            if d:IsA("BasePart") then
+                table.insert(parts, d)
+                if d.Name == "Handle" or d.Name == "Plate" then handle = handle or d end
+            end
+        end
+        handle = handle or parts[1]
+        if handle then
+            handle.Name = "Handle"
+            for _, p in ipairs(parts) do p.Anchored = false end
+            handle.Parent = tool
+            for _, p in ipairs(parts) do
+                if p ~= handle then
+                    p.Parent = tool
+                    local w = Instance.new("WeldConstraint")
+                    w.Name = "GearWeld"; w.Part0 = handle; w.Part1 = p; w.Parent = handle
+                end
+            end
+        end
+        m:Destroy()
+    end
+
+    if not tool:FindFirstChild("Handle") then
+        local h = Instance.new("Part")
+        h.Name = "Handle"
+        h.Shape = Enum.PartType.Cylinder
+        h.Size = Vector3.new(0.5, 1.7, 1.7)
+        h.Color = Color3.fromRGB(84, 88, 94)
+        h.Material = Enum.Material.Metal
+        h.Parent = tool
+    end
+
+    for _, p in ipairs(tool:GetDescendants()) do
+        if p:IsA("BasePart") then
+            p.Anchored = false
+            p.CanCollide = false
+            p.CanQuery = false
+            p.CanTouch = false
+            p.Massless = true
+            p.CastShadow = false
+        end
+    end
+
+    tool.Grip = CFrame.Angles(math.rad(-12), 0, 0)
+    return toolend
+
+local function giveGear(plr)
+    local bag = plr:FindFirstChildOfClass("Backpack")
+    if not bag then return end
+    local have = {}
+    for _, where in ipairs({ bag, plr.Character }) do
+        for _, t in ipairs(where and where:GetChildren() or {}) do
+            if t:IsA("Tool") and t:GetAttribute("Gear") then have[t:GetAttribute("Gear")] = true end
+        end
+    end
+    if not have.Stick then
+        local st = buildStick()
+        st.Activated:Connect(function() swing(plr) end)
+        st.Parent = bag
+    end
+    if not have.Trap then
+        local tr = buildTrapTool()
+        tr.Activated:Connect(function() placeTrap(plr) end)
+        tr.Parent = bag
+    end
+    syncTrapCount(plr)
+end
+
+local function hookGear(plr)
+
+    task.spawn(function()
+        for _ = 1, 6 do
+            if not plr.Parent then return end
+            giveGear(plr)
+            task.wait(1)
+        end
+        while plr.Parent do
+            giveGear(plr)
+            task.wait(5)
+        end
+    end)
+    plr.CharacterAdded:Connect(function()
+        task.delay(1.2, function() if plr.Parent then giveGear(plr) end end)
+    end)
+end
+Players.PlayerAdded:Connect(hookGear)
+for _, plr in ipairs(Players:GetPlayers()) do hookGear(plr) end
+
+Players.PlayerRemoving:Connect(function(plr)
+    stunUntil[plr], stunToken[plr], gearReady[plr] = nil, nil, nil
+    for index = #traps, 1, -1 do
+        if traps[index].owner == plr then
+            traps[index].model:Destroy()
+            table.remove(traps, index)
+        end
+    end
+end)
+
+RunService.Heartbeat:Connect(function(dt)
+    dt = math.min(dt, 0.1)
+    local ok, err = pcall(stepEggs, dt)
+    if not ok then warn("[EggBoss] eggs: " .. tostring(err)) end
+    for n, b in pairs(bosses) do
+        local good, why = pcall(stepBoss, n, b, dt)
+        if not good then
+            warn("[EggBoss] boss " .. tostring(n) .. ": " .. tostring(why))
+            if b.hold then pcall(releaseHeld, b.hold) end
+            b.hold = nil
+            b.state = "returning"
+        end
+    end
+    local fine, msg = pcall(stepTraps)
+    if not fine then warn("[EggBoss] traps: " .. tostring(msg)) end
+end)
+
+local n = 0; for _ in pairs(eggs) do n = n + 1 end
+print(string.format("[EggBoss] %d eggs, %d bosses", n, Cfg.ZONES))
