@@ -1,1 +1,25 @@
-The requested file reference is not currently visible. Use files.search or files.list to rediscover the file, then retry with a returned ref_id or file_id.
+SSTR 0 10242 parsed bytes 90583835 of 90583835
+classes 107 instances 86408 sum 86408
+prnt 86408
+scripts 89 source total 940935
+75565 Script ServerScriptService/EggBossService
+55983 LocalScript StarterPlayer/StarterPlayerScripts/EggClient
+45152 Script ServerScriptService/NestService
+42249 LocalScript StarterPlayer/StarterPlayerScripts/Controllers/AdminController
+36412 LocalScript StarterPlayer/StarterPlayerScripts/WindowSkinClient
+33264 LocalScript StarterPlayer/StarterPlayerScripts/EggChrome
+29309 LocalScript StarterPlayer/StarterPlayerScripts/SellShopClient
+28611 ModuleScript ReplicatedStorage/AnimalRig
+27607 ModuleScript ReplicatedStorage/AnimalPaint
+27342 ModuleScript ReplicatedStorage/Shared/WindowSkin
+27107 LocalScript StarterPlayer/StarterPlayerScripts/IndexClient
+24827 LocalScript StarterPlayer/StarterPlayerScripts/FuseMachineClient
+24728 LocalScript StarterPlayer/StarterPlayerScripts/ShopClient
+23588 LocalScript StarterPlayer/StarterPlayerScripts/Controllers/HudController
+22287 LocalScript StarterPlayer/StarterPlayerScripts/NestClient
+22180 ModuleScript ReplicatedStorage/Shared/UIKit
+17622 Script ServerScriptService/Services/AdminService
+15580 LocalScript StarterPlayer/StarterPlayerScripts/TrailShopClient
+13668 Script ServerScriptService/CaptureEggService
+13250 LocalScript StarterPlayer/StarterPlayerScripts/Controllers/PanelsController
+special 7
