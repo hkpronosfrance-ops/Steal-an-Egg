@@ -32,6 +32,9 @@ if __isFrench then
         ["recommended"] = "recommandé",
         ["SAFE ZONE"] = "ZONE SÛRE",
         ["FASTEST"] = "PLUS RAPIDE",
+        ["PLAYTIME"] = "PLUS ACTIFS",
+        ["TOP SPENDER"] = "TOP DÉPENSE ROBUX",
+        ["GROUP REWARDS"] = "GRATUIT !",
         ["SELL"] = "VENDRE",
         ["SELL PETS"] = "VENDRE LES ANIMAUX",
         ["SELL EGGS"] = "VENDRE LES ŒUFS",
@@ -322,7 +325,7 @@ do
     if string.sub(__locale2, 1, 2) == "fr" then
         local D = {
             -- Main HUD / navigation
-            ["Rebirth"]="Renaissance", ["Shop"]="Boutique", ["Index"]="Collection",
+            ["Rebirth"]="Renaissance", ["Shop"]="Boutique", ["Index"]="Index",
             ["Eggs"]="Œufs", ["Pets"]="Animaux", ["Speed"]="Vitesse", ["SPEED"]="VITESSE",
             ["Settings"]="Paramètres", ["Sell"]="Vendre", ["Fuse"]="Fusionner",
             ["Open"]="Ouvrir", ["Close"]="Fermer", ["Buy"]="Acheter", ["Equip"]="Équiper",
@@ -522,7 +525,7 @@ do
             n,a,b=text:match("^CLAIMED (%d+): %+(.-)  %+(.-) SPEED$"); if n then return "RÉCUPÉRÉ "..n.." : +"..a.."  +"..b.." VITESSE" end
             n=text:match("^%+(%d+) more Legendary eggs!$"); if n then return "+"..n.." œufs légendaires supplémentaires !" end
             a=text:match("^(.-) WON!$"); if a then return a.." A GAGNÉ !" end
-            a=text:match("^NEW PET: (.-) %- claim your reward in the Index!$"); if a then return "NOUVEL ANIMAL : "..(D[a] or a).." - récupère ta récompense dans la Collection !" end
+            a=text:match("^NEW PET: (.-) %- claim your reward in the Index!$"); if a then return "NOUVEL ANIMAL : "..(D[a] or a).." - récupère ta récompense dans l'Index !" end
             a,n=text:match("^(.-) upgraded to Level (%d+)!$"); if a then return (D[a] or a).." amélioré au niveau "..n.." !" end
             a,b=text:match("^Sold (%d+) (.-) for (.+)!$"); if a then return "Vendu "..a.." "..b.." pour "..c.." !" end
             n=text:match("^Zone (%d+)$"); if n then return "Zone "..n end
