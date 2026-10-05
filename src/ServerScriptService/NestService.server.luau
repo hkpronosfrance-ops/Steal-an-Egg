@@ -997,4 +997,337 @@ pushPets = function(plr)
     })
 end
 
-local function petToolsOf(plr)
+local function petToolsOf(plr)    local out = {}
+    for _, holder in ipairs({ plr:FindFirstChildOfClass("Backpack"), plr.Character }) do
+        if holder then
+            for _, t in ipairs(holder:GetChildren()) do
+                if t:IsA("Tool") and t:GetAttribute("AnimalZone") then table.insert(out, t) end
+            end
+        end
+    end
+    return out
+end
+
+local function syncPetTools(plr)
+    local inv = petInventoryOf(plr)
+    if not inv or not plr.Parent then return 0 end
+    local have = {}
+    for _, t in ipairs(petToolsOf(plr)) do
+        local k = t:GetAttribute("SaveKey")
+        if not k or k == "" then
+            k = newKey()
+            t:SetAttribute("SaveKey", k)
+            inv[#inv + 1] = { key = k, zone = t:GetAttribute("AnimalZone") or 1,
+                tier = t:GetAttribute("AnimalTier") or 1, size = t:GetAttribute("AnimalSize") or 1,
+                species = t:GetAttribute("Species") }
+        end
+        have[k] = true
+    end
+    local made = 0
+    for _, e in ipairs(inv) do
+        e.key = e.key or newKey()
+        if not have[e.key] then
+            if grantAnimal(plr, e.zone or 1, e.tier or 1, e.size or 1,
+                { key = e.key, restoring = true, species = e.species, luck = e.luck }) then
+                made += 1
+            end
+        end
+    end
+    return made
+end
+
+local function unequipPet(plr, model)
+    if not (typeof(model) == "Instance" and model.Parent == animals
+        and model:GetAttribute("OwnerUserId") == plr.UserId) then
+        return false
+    end
+    local zone = model:GetAttribute("AnimalZone") or 1
+    local tier = model:GetAttribute("AnimalTier") or 1
+    local size = model:GetAttribute("AnimalSize") or 1
+    local list = animalListOf(plr)
+    if list and not forgetByKey(list, model:GetAttribute("SaveKey")) then
+
+        for i = #list, 1, -1 do
+            local e = list[i]
+            if e.zone == zone and e.tier == tier and e.size == size then
+                table.remove(list, i)
+                break
+            end
+        end
+    end
+    local species, luck = model:GetAttribute("Species"), model:GetAttribute("Luck")
+    model:Destroy()
+    grantAnimal(plr, zone, tier, size, { species = species, luck = luck })
+    return true
+end
+
+local function freeSpot(pen)
+    local r = rects[pen]
+    if not r then return nil end
+    local rng = Random.new()
+    for _ = 1, 40 do
+        local p = Vector3.new(rng:NextNumber(r.minX + 3, r.maxX - 3), r.floorY + 0.5,
+            rng:NextNumber(r.minZ + 3, r.maxZ - 3))
+        if not tooClose(p) then return p end
+    end
+    return nil
+end
+
+local function equipBest(plr)
+    local pen = penOf(plr)
+    if not pen then return end
+    local cap = animalCap(pen)
+    local all = {}
+    for _, m in ipairs(animals:GetChildren()) do
+        if m:GetAttribute("OwnerUserId") == plr.UserId then
+            table.insert(all, { model = m, income = tonumber(m:GetAttribute("Income")) or 0 })
+        end
+    end
+    for _, t in ipairs(petToolsOf(plr)) do
+        table.insert(all, { tool = t, income = Cfg.petIncome(t:GetAttribute("AnimalZone") or 1,
+            t:GetAttribute("AnimalSize") or 1, t:GetAttribute("AnimalTier") or 1, t:GetAttribute("Luck")) })
+    end
+    if #all == 0 then
+        deny(plr, "You have no pets yet")
+        return
+    end
+    table.sort(all, function(a, b)
+        if a.income ~= b.income then return a.income > b.income end
+        return a.model ~= nil and b.model == nil
+    end)
+    local keep = {}
+    for i = 1, math.min(cap, #all) do keep[all[i]] = true end
+
+    local out, into = 0, 0
+    for _, e in ipairs(all) do
+        if e.model and not keep[e] and unequipPet(plr, e.model) then out += 1 end
+    end
+    for _, e in ipairs(all) do
+        if e.tool and keep[e] and e.tool.Parent then
+            local spot = freeSpot(pen)
+            if spot and placeAnimal(plr, spot, e.tool) then into += 1 end
+        end
+    end
+    pushPets(plr)
+end
+
+local function upgradePlot(plr)
+
+    if _G.PlotUpgrade and _G.PlotUpgrade.buy then
+        _G.PlotUpgrade.buy(plr, "PEN")
+        return
+    end
+    local pen = penOf(plr)
+    local P = _G.Profile
+    local prof = P and P.get(plr)
+    if not (pen and prof) then return end
+    local level = math.clamp(tonumber(pen:GetAttribute("PlotLevel")) or 1, 1, PLOT_MAX_LEVEL)
+    if level >= PLOT_MAX_LEVEL then
+        deny(plr, "Your plot is already max level")
+        return
+    end
+    local price = upgradePrice(level)
+    local have = P.value(plr, "wallet", "Coins") or 0
+    if have < price then
+        deny(plr, "Not enough money")
+        return
+    end
+    P.set(plr, "Coins", have - price)
+    pen:SetAttribute("PlotLevel", level + 1)
+    prof.PlotLevel = level + 1
+    pushPets(plr)
+end
+
+local lastPetAction = {}
+local function petBusy(plr)
+    local now = os.clock()
+    if (lastPetAction[plr] or 0) + 0.4 > now then return true end
+    lastPetAction[plr] = now
+    return false
+end
+Players.PlayerRemoving:Connect(function(plr) lastPetAction[plr] = nil end)
+
+local function ownEgg(plr, model)
+    return typeof(model) == "Instance" and model.Parent == placed
+        and model:GetAttribute("OwnerUserId") == plr.UserId
+end
+
+local lastPlace = {}
+local lastMisc = {}
+Players.PlayerRemoving:Connect(function(plr)
+    lastPlace[plr] = nil
+    lastMisc[plr] = nil
+end)
+local function miscBusy(plr, kind, gap)
+    local now = os.clock()
+    local t = lastMisc[plr]
+    if not t then
+        t = {}
+        lastMisc[plr] = t
+    end
+    if (t[kind] or 0) + gap > now then return true end
+    t[kind] = now
+    return false
+end
+local function placeBusy(plr)
+    local now = os.clock()
+    if (lastPlace[plr] or 0) + 0.2 > now then return true end
+    lastPlace[plr] = now
+    return false
+end
+
+remote.OnServerEvent:Connect(function(plr, action, arg)
+    if action == "place" then
+        if not placeBusy(plr) then placeEgg(plr, arg) end
+    elseif action == "placeAnimal" then
+        if not placeBusy(plr) then placeAnimal(plr, arg) end
+    elseif action == "hatchEgg" then
+        if ownEgg(plr, arg) and arg:GetAttribute("Ready") and not arg:GetAttribute("Hatching") then
+            task.spawn(hatch, plr, arg)
+        end
+    elseif action == "skipEgg" then
+        if ownEgg(plr, arg) and not miscBusy(plr, "prompt", 0.5) then skipGrowth(plr, arg) end
+    elseif action == "growAll" then
+        if not miscBusy(plr, "prompt", 0.5) then growAll(plr) end
+    elseif action == "petsState" then
+        if not miscBusy(plr, "pets", 0.1) then pushPets(plr) end
+    elseif action == "unequipPet" then
+        if not petBusy(plr) and unequipPet(plr, arg) then pushPets(plr) end
+    elseif action == "equipBest" then
+        if not petBusy(plr) then equipBest(plr) end
+    elseif action == "upgradePlot" then
+        if not petBusy(plr) then upgradePlot(plr) end
+    end
+end)
+
+Players.PlayerRemoving:Connect(function(plr)
+    for _, model in ipairs(placed:GetChildren()) do
+        if model:GetAttribute("OwnerUserId") == plr.UserId then model:Destroy() end
+    end
+    for _, model in ipairs(animals:GetChildren()) do
+        if model:GetAttribute("OwnerUserId") == plr.UserId then model:Destroy() end
+    end
+end)
+
+local function restoreAnimals(plr)
+    local list = animalListOf(plr)
+    if not list or #list == 0 then return 0 end
+    local pen = penOf(plr)
+    if not pen then return 0 end
+    local cx, cz, hx, hz = penFrame(pen)
+    if not cx then return 0 end
+    local r = rects[pen]
+    local built = 0
+
+    for _, e in ipairs(list) do
+        local zone, tier, size = e.zone or 1, e.tier or 1, e.size or 1
+        local m = animalTemplate(zone, tier, size, e.species)
+        if m then
+            m.Name = ("%s %s %s"):format(
+                Cfg.NAMES[zone] or ("Zone" .. zone),
+                Cfg.TIERS[tier] and Cfg.TIERS[tier].name or "Common",
+                Cfg.SIZES[size] and Cfg.SIZES[size].name or "Normal")
+            m:ScaleTo(m:GetScale() * ((Cfg.ANIMAL_SCALE and Cfg.ANIMAL_SCALE[size]) or 1))
+            if r then
+                local _, box = m:GetBoundingBox()
+                local longest = math.max(box.X, box.Z)
+                local room = math.min(r.maxX - r.minX, r.maxZ - r.minZ) * (Cfg.ANIMAL_PEN_FILL or 0.8)
+                if longest > room and longest > 0.01 then
+                    m:ScaleTo(m:GetScale() * (room / longest))
+                end
+            end
+            local x = cx + (e.u or 0) * hx
+            local z = cz + (e.v or 0) * hz
+            local ground = r and r.floorY or 0
+            m:PivotTo(CFrame.new(x, ground, z))
+            m:SetAttribute("OwnerUserId", plr.UserId)
+            m:SetAttribute("Pen", pen.Name)
+            m:SetAttribute("AnimalZone", zone)
+            m:SetAttribute("AnimalTier", tier)
+            m:SetAttribute("AnimalSize", size)
+            m:SetAttribute("GroundY", ground)
+            m:SetAttribute("Seed", math.random(1, 2 ^ 30))
+            m:SetAttribute("SpawnAt", workspace:GetServerTimeNow())
+            m:SetAttribute("Income", Cfg.petIncome(zone, size, tier, e.luck))
+            if e.luck then m:SetAttribute("Luck", e.luck) end
+            m:SetAttribute("Species", e.species or m:GetAttribute("Species") or m.Name)
+            m:SetAttribute("Rarity", Cfg.TIERS[tier] and Cfg.TIERS[tier].name or "Common")
+            e.key = e.key or newKey()
+            m:SetAttribute("SaveKey", e.key)
+            m.ModelStreamingMode = Enum.ModelStreamingMode.PersistentPerPlayer
+            m.Parent = animals
+            pcall(function() m:AddPersistentPlayer(plr) end)
+            built += 1
+        end
+    end
+    return built
+end
+
+local function restoreWhenReady(plr)
+    for _ = 1, 600 do
+        if not plr.Parent then return end
+        if _G.Profile and _G.Profile.get(plr) and penOf(plr) then break end
+        task.wait(0.2)
+    end
+    if not plr.Parent then return end
+
+    local prof = _G.Profile and _G.Profile.get(plr)
+    if not prof then return end
+    local myPen = penOf(plr)
+    if myPen then
+        myPen:SetAttribute("PlotLevel", math.clamp(tonumber(prof and prof.PlotLevel) or 1, 1, PLOT_MAX_LEVEL))
+    end
+    local n = restoreEggs(plr)
+    local a = restoreAnimals(plr)
+
+    restored[plr] = true
+    syncPetTools(plr)
+    plr.CharacterAdded:Connect(function()
+        task.wait(1)
+        syncPetTools(plr)
+    end)
+    if n > 0 or a > 0 then
+    end
+end
+
+Players.PlayerAdded:Connect(function(plr) task.spawn(restoreWhenReady, plr) end)
+for _, plr in ipairs(Players:GetPlayers()) do task.spawn(restoreWhenReady, plr) end
+
+_G.Animals = {
+    grant = grantAnimal,
+    cap = animalCap,
+    count = animalsIn,
+}
+
+_G.Nest = {
+    penOf = penOf,
+    pushPets = function(plr) if pushPets then pushPets(plr) end end,
+    rectOf = function(pen) return rects[pen] end,
+    eggsOf = function(plr)
+        local list = {}
+        for _, m in ipairs(placed:GetChildren()) do
+            if m:GetAttribute("OwnerUserId") == plr.UserId then list[#list + 1] = m end
+        end
+        return list
+    end,
+
+    ripen = function(plr)
+        local now = workspace:GetServerTimeNow()
+        local unix = os.time()
+        local n = 0
+        for _, m in ipairs(placed:GetChildren()) do
+            if m:GetAttribute("OwnerUserId") == plr.UserId then
+                m:SetAttribute("HatchAt", now)
+                m:SetAttribute("ReadyEpoch", unix)
+                n += 1
+            end
+        end
+        local list = eggListOf(plr)
+        if list then
+            for _, e in ipairs(list) do e.ready = unix end
+        end
+        return n
+    end,
+}
+
+print(("[Nest] hatchery ready - %d pens"):format(#pens:GetChildren()))
